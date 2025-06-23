@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>BPMN Custom Renderer</title>
+
+  <!-- BPMN 스타일 CDN -->
+  <link rel="stylesheet" href="https://unpkg.com/bpmn-js@11.5.0/dist/assets/diagram-js.css">
+  <link rel="stylesheet" href="https://unpkg.com/bpmn-js@11.5.0/dist/assets/bpmn-font/css/bpmn-embedded.css">
+
+  <style>
+    html, body, #canvas {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas"></div>
+
+  <!-- 라이브러리 CDN -->
+  <script src="https://unpkg.com/bpmn-js@11.5.0/dist/bpmn-modeler.development.js"></script>
+
+  <script>
+
+    var diagramUrl = 'https://cdn.statically.io/gh/bpmn-io/bpmn-js-examples/dfceecba/starter/diagram.bpmn';
+    class CustomRenderer {
+      constructor(eventBus, styles) {
+        this._eventBus = eventBus;
+        this._styles = styles;
+
+        eventBus.on('render.shape', 2000, (event) => {
+          const { element, gfx } = event;
+          if (element.type === 'bpmn:Task') {
+            this.drawCustomTask(gfx, element);
+            event.stopPropagation();
+          }
+        });
+      }
+
+      drawCustomTask(parentNode, element) {
+        const SVG_NS = 'http://www.w3.org/2000/svg';
+        const width = element.width || 100;
+        const height = element.height || 80;
+
+        // 사각형 생성
+        const rect = document.createElementNS(SVG_NS, 'rect');
+        rect.setAttribute('width', width);
+        rect.setAttribute('height', height);
+        rect.setAttribute('rx', 10);
+        rect.setAttribute('ry', 10);
+        rect.setAttribute('fill', '#ffd700');
+        rect.setAttribute('stroke', '#333');
+        rect.setAttribute('stroke-width', 2);
+        parentNode.appendChild(rect);
+
+        // 텍스트 생성
+        const text = document.createElementNS(SVG_NS, 'text');
+        text.textContent = 'Job Proc';
+        text.setAttribute('x', width / 2);
+        text.setAttribute('y', height / 2 + 5);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('font-size', '12px');
+        text.setAttribute('font-weight', 'bold');
+        parentNode.appendChild(text);
+      }
+    }
+
+    CustomRenderer.$inject = ['eventBus', 'styles'];
+
+    const customRendererModule = {
+      __init__: ['customRenderer'],
+      customRenderer: ['type', CustomRenderer]
+    };
+
+    const bpmnModeler = new BpmnJS({
+      container: '#canvas',
+      additionalModules: [customRendererModule]
+    });
+
+    // bpmnModeler.importXML(xml).catch(err => console.error(err));
+    // load external diagram file via AJAX and open it
+    fetch(diagramUrl)
+      .then((res) => res.text())
+      .then((xml) => bpmnModeler.importXML(xml))
+      .catch((err) => console.error('Modeler Error:', err))
+  </script>
+</body>
+</html>
