@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Camunda FormData 포함 생성</title>
+  <link rel="stylesheet" href="./vendor/bpmn-js/assets/diagram-js.css" />
+  <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/bpmn-embedded.css" />
+  <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/properties-panel.css" />
+  <style>
+    body { margin: 0; font-family: sans-serif; display: flex; }
+    #toolbox {
+      width: 60px;
+      background: #f5f5f5;
+      padding: 10px;
+      border-right: 1px solid #ccc;
+    }
+    .tool-item {
+      width: 40px;
+      height: 40px;
+      margin: 10px auto;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+    }
+
+    #canvas {
+      flex: 1;
+      width: 700px;
+      height: 70vh;
+      border: 1px solid #ccc;
+    }
+    #properties {
+      width: 300px;
+      height: 100%;
+    }
+    #popup {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: white;
+      padding: 10px;
+      border: 1px solid #ccc;
+      z-index: 10;
+      flex-direction: column;
+      gap: 5px;
+
+      color: #111;
+      position: absolute;
+      transform: translate(-50%, -50%);
+      width: 200px;
+      height: 250px;
+    }
+    #popup input, #popup select, #popup button {
+      padding: 5px;
+      font-size: 14px;
+    }
+
+    .hidden {
+      display: none;
+    }
+    .flex {
+      display: flex;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BPMN JS -->
+  <!-- <script src="./vendor/bpmn-js/assets/bpmn-modeler-v11.5.0.js"></script> -->
+  <script src="./vendor/bpmn-js/assets/bpmn-modeler-v18.6.2.js"></script>
+
+  <!-- Properties Panel -->
+  <script src="./vendor/bpmn-js/assets/bpmn-js-properties-panel-v5.30.0.js"></script>
+
+  <div style="padding: 10px;"><button id="save-button">Save XML</button></div>
+  <div id="toolbox">
+    <div id="guest-div" class="tool-item" draggable="true" data-id="guest-input-task1" data-name="Guest Task" data-type="bpmn:UserTask" data-role="guest" data-label="최창현" title="User Task">
+      <svg width="24" height="24" viewBox="0 0 24 24">
+        <rect x="2" y="4" width="20" height="16" rx="3" fill="#2196f3" />
+        <text x="12" y="16" font-size="10" fill="#fff" text-anchor="middle">G</text>
+      </svg>
+    </div>
+    <div id="admin-div" class="tool-item" draggable="true" data-id="admin-input-task1" data-name="Admin Task" data-type="bpmn:UserTask" data-role="admin" data-label="홍길동" title="User Task2">
+      <svg width="24" height="24" viewBox="0 0 24 24">
+        <rect x="2" y="4" width="20" height="16" rx="3" fill="#2196f3" />
+        <text x="12" y="16" font-size="10" fill="#fff" text-anchor="middle">A</text>
+      </svg>
+    </div>
+  </div>
+  <div>
+
+  <div style="margin-left: 20px; font-size: 11px;">
+    <br />
+<h2>테스트 시나리오</h2>
+
+1. 좌측의 외부 G(guest)버튼을 드래그하여 canvas로 드롭다운<br />
+2. label이 guest인 User Task가 생성되는것을 확인
+3. 우측 속성 창에서 camunda Form fields(username, role)의 값 지정 확인<br />
+4. guest User Task객체 우클릭 시 경고창 확인<br />
+5. 좌측의 외부 A(admin)버튼을 드래그하여 canvas로 드롭다운<br />
+6. label이 admin인 User Task가 생성되는것을 확인
+7. 우측 속성 창에서 camunda Form fields(username, role)의 값 지정 확인<br />
+8. admin User Task객체 우클릭 시 팝업 노출 확인<br />
+  </div>
+  <div id="canvas"></div>
+  </div>
+  <div id="properties"></div>
+
+<div id="popup" class="panel hidden">
+  <label for="elementType">겍체 선택:</label>
+  <select id="elementType">
+    <option value="">선택하세요</option>
+    <option value="bpmn:StartEvent">Start Event</option>
+    <option value="bpmn:Task">Task</option>
+    <option value="bpmn:ExclusiveGateway">Exclusive Gateway</option>
+  </select>
+
+  <label for="flowType">Flow 선택:</label>
+  <select id="flowType">
+    <option value="">선택하세요</option>
+    <option value="bpmn:SequenceFlow">실선</option>
+    <option value="bpmn:Association">점선</option>
+  </select>
+  <label for="elementName">Name(Label):</label>
+  <input type="text" id="elementName" placeholder="예: 사용자 태스크">
+
+  <button id="closeBtn">닫기</button>
+</div>
+  <script>
+  (async function() {
+
+    const camundaModdle = await fetch('./json/camundaModdle.json')
+      .then(response => response.json());
+
+    const bpmnModeler = new BpmnModeler({
+      container: '#canvas',
+      propertiesPanel: {
+        parent: '#properties',
+      },
+      moddleExtensions: {
+        camunda: camundaModdle
+      },
+      additionalModules: [
+        window.BpmnJSPropertiesPanel.BpmnPropertiesPanelModule,
+        window.BpmnJSPropertiesPanel.BpmnPropertiesProviderModule,
+        window.BpmnJSPropertiesPanel.CamundaPlatformPropertiesProviderModule,
+        window.BpmnJSPropertiesPanel.CamundaPlatformTooltipProvider,
+      ],
+    });
+      const eventBus = bpmnModeler.get('eventBus');
+
+    bpmnModeler.createDiagram();
+
+    document.querySelectorAll('.tool-item').forEach(item => {
+      item.addEventListener('dragstart', (e) => {
+        const type = e.target.dataset.type;
+        const role = e.target.dataset.role;
+        const id = e.target.dataset.id;
+        const name = e.target.dataset.name;
+        const label = e.target.dataset.label;
+
+        e.dataTransfer.setData('type', type);
+        e.dataTransfer.setData('role', role);
+        e.dataTransfer.setData('id', id);
+        e.dataTransfer.setData('name', name);
+        e.dataTransfer.setData('label', label);
+      });
+    });
+
+    const canvasContainer = document.getElementById('canvas');
+
+    canvasContainer.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+
+    // 닫기버튼 클릭 시 팝업창 close
+    document.getElementById('closeBtn').addEventListener('click', (event) => {
+      document.getElementById('popup').classList.add('hidden');
+      document.getElementById('popup').classList.remove('flex');
+    });
+    // 우클릭 시 이벤트
+    bpmnModeler.on('element.contextmenu', 1500, (event) => {
+      event.originalEvent.preventDefault();
+      event.originalEvent.stopPropagation();
+
+      const currentElement = event.element;
+      const businessObject = currentElement.businessObject;
+      if (!businessObject.role) {
+        return;
+      }
+      console.log(businessObject.role)
+      if (businessObject.role === 'guest') {
+        alert('guest는 우클릭을 할 수 없습니다.');
+      } else if(businessObject.role === 'admin') {
+    const selectedElement = event.element;
+    if (!selectedElement.parent) {
+      return;
+    }
+    document.getElementById('popup').style.left = (selectedElement.x + 350) + 'px';
+    document.getElementById('popup').style.top = (selectedElement.y + 150) + 'px';
+        document.getElementById('popup').classList.add('flex')
+        document.getElementById('popup').classList.remove('hidden')
+      }
+      // console.log(currentElement);
+      // console.log(businessObject);
+    });
+    canvasContainer.addEventListener('drop', async (e) => {
+      e.preventDefault();
+
+      const type = e.dataTransfer.getData('type');
+      const role = e.dataTransfer.getData('role');
+      const id = e.dataTransfer.getData('id');
+      const name = e.dataTransfer.getData('name');
+      const label = e.dataTransfer.getData('label');
+
+      if (!type) return;
+
+      const canvas = bpmnModeler.get('canvas');
+      const modeling = bpmnModeler.get('modeling');
+      const moddle = bpmnModeler.get('moddle');
+      const elementFactory = bpmnModeler.get('elementFactory');
+      const selection = bpmnModeler.get('selection');
+
+      const rect = canvasContainer.getBoundingClientRect();
+      const position = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+
+      // 1. camunda:formField 생성
+      const formField = moddle.create('camunda:FormField', {
+        id: 'username',
+        label: label,
+        type: 'string',
+        validation: moddle.create('camunda:Validation', {
+          constraints: [
+            moddle.create('camunda:Constraint', {
+              name: 'required',
+              config: true
+            })
+          ]
+        })
+      });
+      // 2. 드롭다운 필드 (enum)
+      const roleField = moddle.create('camunda:FormField', {
+        id: 'role',
+        label: role,
+        type: 'string',
+      });
+
+      // 2. camunda:formData 생성
+      const formData = moddle.create('camunda:FormData', {
+        fields: [formField, roleField]
+      });
+
+      // 3. 확장 요소에 포함
+      const extensionElements = moddle.create('bpmn:ExtensionElements', {
+        values: [formData],
+      });
+
+      // 4. businessObject 구성
+      const businessObject = moddle.create(type, {
+        id,
+        name,
+        extensionElements
+      });
+
+      const shape = elementFactory.createShape({
+        type,
+        businessObject
+      });
+      shape.businessObject.role = role;
+      // console.log(shape)
+      // const element = event.element;
+      // modeling.updateProperties(shape.businessObject, {
+      //   role: 'guest'
+      // });
+      // console.log(shape)
+
+      modeling.createShape(shape, position, canvas.getRootElement());
+      document.getElementById(role + '-div').style.display = 'none';
+
+    });
+
+
+
+      // console.log(eventBus)
+      bpmnModeler.get('eventBus').on('commandStack.shape.delete.postExecute', (event) => {
+        const role = event.context.shape.businessObject.role;
+        // alert(2)
+        document.getElementById(role + '-div').style.display = '';
+      })
+    //삭제 후 다시 svg (guest-div)가 block되도록 업데이트
+
+    document.getElementById('save-button').addEventListener('click', () => {
+      bpmnModeler.saveXML({ format: true }).then(({ xml }) => {
+        console.log('✅ 저장된 XML:\n', xml);
+        const blob = new Blob([xml], { type: 'application/xml' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'diagram.bpmn';
+        a.click();
+
+        URL.revokeObjectURL(url);
+      }).catch(err => {
+        console.error('❌ XML 저장 실패:', err);
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>BPMN Custom ContextPad, Palette, Renderer</title>
+
+  <meta charset="utf-8"/>
+  <link rel="stylesheet" href="./vendor/bpmn-js/assets/diagram-js.css" />
+  <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/bpmn-embedded.css" />
+  <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/properties-panel.css" />
+  <link rel="stylesheet" href="css/app.css" />
+
+</head>
+<body>
+  <h3 style="margin-left: 20px;">
+    변경 내용 : <br />
+    1. Palette와 ContextPad에 25, 50, 100 티커가 붙은 Task를 추가 <br />
+    2. 모든 객체에서 오른쪽 클릭 시 품질 점수 패널을 표시합니다.<br />
+    3. Palette와 ContextPad에서 Task 객체를 생성할 때 적합성 점수를 설정할 수 있습니다.<br />
+    4. 점수가 75 초과이면 녹색, 25 초과 75 이하면 노란색, 25 이하이면 빨간색으로 표시됩니다.<br />
+    5. Task 객체의 라벨을 변경할 때 유효성 검사를 수행하여 '개발', '설계', '디자인' 텍스트만 입력 가능합니다.<br />
+  </h3>
+  <div id="container"></div>
+  <div id="quality-assurance" class="panel hidden">
+    <form id="form">
+      <p>
+        <b>품질 점수</b>
+      </p>
+      <br />
+      <input id="suitability-score" type="text" placeholder="100" autocomplete="off">
+      <br />
+      <br />
+      <p id="warning" class="hidden">
+        숫자만 입력 가능합니다.
+      </p>
+      <br />
+      <p>
+        <b>마지막 수정일시</b>
+      </p>
+      <br />
+      <p id="last-checked">
+        -
+      </p>
+      <br />
+      <input id="okay" type="submit" value="Okay">&nbsp;&nbsp;
+      <input id="cancel" type="button" value="Cancel">
+    </form>
+  </div>
+
+  <!-- <div id="hint" class="panel">Click <b>right mouse button</b> to edit properties.</div> -->
+
+  <!-- BPMN JS -->
+  <!-- <script src="./vendor/bpmn-js/assets/bpmn-modeler-v11.5.0.js"></script> -->
+  <script src="./vendor/bpmn-js/assets/bpmn-modeler-v18.6.2.js"></script>
+  <script src="./utils/index.js"></script>
+  <script>
+
+  (async function async () {
+    const SUITABILITY_SCORE_HIGH = 100,
+      SUITABILITY_SCORE_AVERAGE = 50,
+      SUITABILITY_SCORE_LOW = 25;
+    const HIGH_PRIORITY = 1500;
+
+
+
+    const CustomPalette = class CustomPalette {
+      constructor(bpmnFactory, create, elementFactory, palette, translate) {
+        this.bpmnFactory = bpmnFactory;
+        this.create = create;
+        this.elementFactory = elementFactory;
+        this.translate = translate;
+
+        palette.registerProvider(this);
+      }
+
+      getPaletteEntries(element) {
+        const {
+          bpmnFactory,
+          create,
+          elementFactory,
+          translate
+        } = this;
+
+        function createTask(suitabilityScore) {
+          return function(event) {
+            const businessObject = bpmnFactory.create('bpmn:Task');
+
+            businessObject.suitable = suitabilityScore;
+
+            const shape = elementFactory.createShape({
+              type: 'bpmn:Task',
+              businessObject: businessObject
+            });
+
+            create.start(event, shape);
+          };
+        }
+
+        return {
+          'create.low-task': {
+            group: 'activity',
+            className: 'bpmn-icon-task red',
+            title: translate('Create Task with low suitability score'),
+            action: {
+              dragstart: createTask(SUITABILITY_SCORE_LOW),
+              click: createTask(SUITABILITY_SCORE_LOW)
+            }
+          },
+          'create.average-task': {
+            group: 'activity',
+            className: 'bpmn-icon-task yellow',
+            title: translate('Create Task with average suitability score'),
+            action: {
+              dragstart: createTask(SUITABILITY_SCORE_AVERAGE),
+              click: createTask(SUITABILITY_SCORE_AVERAGE)
+            }
+          },
+          'create.high-task': {
+            group: 'activity',
+            className: 'bpmn-icon-task green',
+            title: translate('Create Task with high suitability score'),
+            action: {
+              dragstart: createTask(SUITABILITY_SCORE_HIGH),
+              click: createTask(SUITABILITY_SCORE_HIGH)
+            }
+          }
+        };
+      }
+    }
+
+    CustomPalette.$inject = [
+      'bpmnFactory',
+      'create',
+      'elementFactory',
+      'palette',
+      'translate'
+    ];
+
+    const CustomContextPad = class CustomContextPad {
+      constructor(bpmnFactory, config, contextPad, create, elementFactory, injector, translate) {
+        this.bpmnFactory = bpmnFactory;
+        this.create = create;
+        this.elementFactory = elementFactory;
+        this.translate = translate;
+
+        if (config.autoPlace !== false) {
+          this.autoPlace = injector.get('autoPlace', false);
+        }
+
+        contextPad.registerProvider(this);
+      }
+
+      getContextPadEntries(element) {
+        const {
+          autoPlace,
+          bpmnFactory,
+          create,
+          elementFactory,
+          translate
+        } = this;
+
+        function appendServiceTask(suitabilityScore) {
+          return function(event, element) {
+            if (autoPlace) {
+              const businessObject = bpmnFactory.create('bpmn:Task');
+
+              businessObject.suitable = suitabilityScore;
+
+              const shape = elementFactory.createShape({
+                type: 'bpmn:Task',
+                businessObject: businessObject
+              });
+
+              autoPlace.append(element, shape);
+            } else {
+              appendServiceTaskStart(event, element);
+            }
+          };
+        }
+
+        function appendServiceTaskStart(suitabilityScore) {
+          return function(event) {
+            const businessObject = bpmnFactory.create('bpmn:Task');
+
+            businessObject.suitable = suitabilityScore;
+
+            const shape = elementFactory.createShape({
+              type: 'bpmn:Task',
+              businessObject: businessObject
+            });
+
+            create.start(event, shape, element);
+          };
+        }
+
+        return {
+          'append.low-task': {
+            group: 'model',
+            className: 'bpmn-icon-task red',
+            title: translate('Append Task with low suitability score'),
+            action: {
+              click: appendServiceTask(SUITABILITY_SCORE_LOW),
+              dragstart: appendServiceTaskStart(SUITABILITY_SCORE_LOW)
+            }
+          },
+          'append.average-task': {
+            group: 'model',
+            className: 'bpmn-icon-task yellow',
+            title: translate('Append Task with average suitability score'),
+            action: {
+              click: appendServiceTask(SUITABILITY_SCORE_AVERAGE),
+              dragstart: appendServiceTaskStart(SUITABILITY_SCORE_AVERAGE)
+            }
+          },
+          'append.high-task': {
+            group: 'model',
+            className: 'bpmn-icon-task green',
+            title: translate('Append Task with high suitability score'),
+            action: {
+              click: appendServiceTask(SUITABILITY_SCORE_HIGH),
+              dragstart: appendServiceTaskStart(SUITABILITY_SCORE_HIGH)
+            }
+          }
+        };
+      }
+    }
+
+    CustomContextPad.$inject = [
+      'bpmnFactory',
+      'config',
+      'contextPad',
+      'create',
+      'elementFactory',
+      'injector',
+      'translate'
+    ];
+
+    const TASK_BORDER_RADIUS = 2,
+          COLOR_GREEN = '#52B415',
+          COLOR_YELLOW = '#ffc800',
+          COLOR_RED = '#cc0000';
+
+    function registerCustomRenderer(eventBus, bpmnRenderer) {
+      const BaseRenderer = extractBaseRenderer(bpmnRenderer);
+      class _CustomRenderer extends BaseRenderer {
+        static $inject = ['eventBus', 'bpmnRenderer'];
+
+        constructor(eventBus, bpmnRenderer) {
+          super(eventBus, HIGH_PRIORITY);
+          this.bpmnRenderer = bpmnRenderer;
+        }
+
+        canRender(element) {
+
+          // ignore labels
+          return !element.labelTarget;
+        }
+
+
+        drawShape(parentNode, element) {
+          const shape = this.bpmnRenderer.drawShape(parentNode, element);
+
+          const suitabilityScore = this.getSuitabilityScore(element);
+
+          if (!isNil(suitabilityScore)) {
+            const color = this.getColor(suitabilityScore);
+
+            const rect = drawRect(parentNode, 50, 20, TASK_BORDER_RADIUS, color);
+
+            svgAttr(rect, {
+              transform: 'translate(-20, -10)'
+            });
+
+            var text = svgCreate('text');
+
+            svgAttr(text, {
+              fill: '#fff',
+              transform: 'translate(-15, 5)'
+            });
+
+            svgClasses(text).add('djs-label');
+
+            svgAppend(text, document.createTextNode(suitabilityScore));
+
+            svgAppend(parentNode, text);
+          }
+
+          return shape;
+        }
+
+        getShapePath(shape) {
+          if (is(shape, 'bpmn:Task')) {
+            return getRoundRectPath(shape, TASK_BORDER_RADIUS);
+          }
+
+          return this.bpmnRenderer.getShapePath(shape);
+        }
+
+        getSuitabilityScore(element) {
+          const businessObject = getBusinessObject(element);
+
+          const { suitable } = businessObject;
+
+          return Number.isFinite(suitable) ? suitable : null;
+        }
+
+        getColor(suitabilityScore) {
+          if (suitabilityScore > 75) {
+            return COLOR_GREEN;
+          } else if (suitabilityScore > 25) {
+            return COLOR_YELLOW;
+          }
+
+          return COLOR_RED;
+        }
+
+        getShapePath(shape) {
+          return this.bpmnRenderer.getShapePath(shape);
+        }
+      }
+
+      CustomRenderer = _CustomRenderer;
+
+      return new CustomRenderer(eventBus, bpmnRenderer);
+    }
+
+
+    const qaExtension = await fetch('./json/qaExtension.json')
+      .then(response => response.json());
+
+    const containerEl = document.getElementById('container'),
+          qualityAssuranceEl = document.getElementById('quality-assurance'),
+          suitabilityScoreEl = document.getElementById('suitability-score'),
+          lastCheckedEl = document.getElementById('last-checked'),
+          okayEl = document.getElementById('okay'),
+          cancelEl = document.getElementById('cancel'),
+          formEl = document.getElementById('form'),
+          warningEl = document.getElementById('warning');
+
+    const customModule = {
+      __init__: [ 'customContextPad', 'customPalette', 'customRenderer' ],
+      customContextPad: [ 'type', CustomContextPad ],
+      customPalette: [ 'type', CustomPalette ],
+      customRenderer: ['type', registerCustomRenderer]
+    };
+    // create modeler
+    const bpmnModeler = new BpmnModeler({
+      container: '#container',
+      additionalModules: [
+        customModule
+      ],
+      moddleExtensions: {
+        qa: qaExtension
+      }
+    });
+
+
+    fetch('./xml/test2.xml')
+      .then(response => response.text())
+      .then(xml => {
+        return bpmnModeler.importXML(xml).then(() => {
+
+        const moddle = bpmnModeler.get('moddle'),
+              modeling = bpmnModeler.get('modeling'),
+              canvas = bpmnModeler.get('canvas');
+
+        requestAnimationFrame(() => {
+          // 현재 뷰박스 얻기
+          const viewbox = canvas.viewbox();
+
+          // 원하는 위치로 이동
+          canvas.viewbox({
+            x: -100,
+            y: 0,
+            width: viewbox.width,
+            height: viewbox.height
+          });
+        });
+        let analysisDetails,
+            businessObject,
+            element,
+            suitabilityScore;
+
+        // validate suitability score
+        function validate() {
+          const { value } = suitabilityScoreEl;
+          if (isNaN(value)) {
+            warningEl.classList.remove('hidden');
+            okayEl.disabled = true;
+          } else {
+            warningEl.classList.add('hidden');
+            okayEl.disabled = false;
+          }
+        }
+        // validate 라벨 변경
+        function validate2(element, oValue, nValue) {
+          const arr = ['개발', '설계', '디자인'];
+          if (arr.includes(nValue) === false) {
+            alert('라벨은 개발, 설계, 디자인 텍스트만 입력가능합니다.');
+            return false;
+          }
+          return true;
+        }
+        // hide quality assurance if user clicks outside
+        window.addEventListener('click', (event) => {
+          const { target } = event;
+
+          if (target === qualityAssuranceEl || qualityAssuranceEl.contains(target)) {
+            return;
+          }
+
+          qualityAssuranceEl.classList.add('hidden');
+        });
+        bpmnModeler.on('commandStack.element.updateLabel.preExecute', (event) => {
+          const { context } = event;
+          if (context.element.type === 'bpmn:Task') {
+            setTimeout(() => {
+              // 라벨 변경 후 유효성 검사
+              if (!validate2(context.element, context.oldLabel, context.newLabel)) {
+                // 라벨이 유효하지 않으면 이전 값으로 되돌림
+                modeling.updateProperties(context.element, {
+                  name: context.oldLabel
+                });
+              }
+            }, 100);
+            // validate2(context.element, context.oldLabel, context.newLabel);
+          }
+        });
+        // open quality assurance if user right clicks on element
+        bpmnModeler.on('element.contextmenu', HIGH_PRIORITY, (event) => {
+          event.originalEvent.preventDefault();
+          event.originalEvent.stopPropagation();
+
+          qualityAssuranceEl.classList.remove('hidden');
+
+          ({ element } = event);
+
+          // console.log('element.contextmenu.parent', element.parent);
+
+          // ignore root element
+          if (!element.parent) {
+            return;
+          }
+
+          businessObject = getBusinessObject(element);
+
+          let { suitable } = businessObject;
+
+          suitabilityScoreEl.value = suitable ? suitable : '';
+
+          suitabilityScoreEl.focus();
+
+          analysisDetails = getExtensionElement(businessObject, 'qa:AnalysisDetails');
+
+          lastCheckedEl.textContent = analysisDetails ? analysisDetails.lastChecked : '-';
+
+          validate();
+        });
+
+        // set suitability core and last checked if user submits
+        formEl.addEventListener('submit', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+
+          suitabilityScore = Number(suitabilityScoreEl.value);
+          if (isNaN(suitabilityScore)) {
+            return;
+          }
+
+          const extensionElements = businessObject.extensionElements || moddle.create('bpmn:ExtensionElements');
+
+          if (!analysisDetails) {
+            analysisDetails = moddle.create('qa:AnalysisDetails');
+
+            extensionElements.get('values').push(analysisDetails);
+          }
+
+          analysisDetails.lastChecked = new Date().toISOString();
+          modeling.updateProperties(element, {
+            extensionElements,
+            suitable: suitabilityScore
+          });
+
+          qualityAssuranceEl.classList.add('hidden');
+        })
+
+        // close quality assurance if user presses escape
+        cancelEl.addEventListener('click', (event) => {
+          qualityAssuranceEl.classList.add('hidden');
+        });
+        formEl.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') {
+            qualityAssuranceEl.classList.add('hidden');
+          }
+        });
+
+        // validate suitability score if user inputs value
+        suitabilityScoreEl.addEventListener('input', validate);
+      });
+      })
+      .catch(err => {
+        console.error('Failed to import BPMN diagram', err);
+      });
+
+    })();
+  </script>
+</html>

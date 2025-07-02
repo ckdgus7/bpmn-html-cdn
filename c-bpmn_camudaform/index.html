@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="../vendor/bpmn-js/assets/diagram-js.css" />
+  <link rel="stylesheet" href="../vendor/bpmn-js/assets/bpmn-font/css/bpmn-embedded.css" />
+  <link rel="stylesheet" href="../vendor/bpmn-js/assets/bpmn-font/css/properties-panel.css" />
+  <title>BPMN + Camunda Form 통합 템플릿</title>
+  <!-- BPMN JS -->
+  <!-- <script src="./vendor/bpmn-js/assets/bpmn-modeler-v11.5.0.js"></script> -->
+  <script src="../vendor/bpmn-js/assets/bpmn-modeler-v18.6.2.js"></script>
+
+  <!-- Properties Panel -->
+  <script src="../vendor/bpmn-js/assets/bpmn-js-properties-panel-v5.30.0.js"></script>
+  <style>
+    body { margin: 0; font-family: sans-serif; display: flex; height: 100vh; }
+    #canvas { flex: 2; border-right: 1px solid #ccc; }
+    #form-panel { flex: 1; padding: 1em; overflow-y: auto; }
+    #form-panel h3 { margin-top: 0; }
+    #properties {
+      width: 300px;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+
+<div id="canvas"></div>
+  <div id="properties"></div>
+<div id="form-panel">
+  <p><button id="save-button" onclick="saveXML()">XML 저장</button></p>
+  <h3>Form 미리보기</h3>
+  <div id="form-container">UserTask를 선택하세요</div>
+</div>
+
+<script>
+(async function() {
+
+  const camundaModdle = await fetch('../json/camundaModdle.json')
+    .then(response => response.json());
+
+  const modeler = new BpmnModeler({
+      container: '#canvas',
+      propertiesPanel: {
+        parent: '#properties',
+      },
+      moddleExtensions: {
+        camunda: camundaModdle
+      },
+      additionalModules: [
+        window.BpmnJSPropertiesPanel.BpmnPropertiesPanelModule,
+        window.BpmnJSPropertiesPanel.BpmnPropertiesProviderModule,
+        window.BpmnJSPropertiesPanel.CamundaPlatformPropertiesProviderModule,
+        window.BpmnJSPropertiesPanel.CamundaPlatformTooltipProvider,
+      ],
+    });
+
+    document.getElementById('save-button').addEventListener('click', () => {
+      modeler.saveXML({ format: true }).then(({ xml }) => {
+        console.log('✅ 저장된 XML:\n', xml);
+        const blob = new Blob([xml], { type: 'application/xml' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'diagram.bpmn';
+        a.click();
+
+        URL.revokeObjectURL(url);
+      }).catch(err => {
+        console.error('❌ XML 저장 실패:', err);
+      });
+    });
+    // 빈 다이어그램 로드
+    modeler.createDiagram();
+
+    const formContainer = document.getElementById('form-container');
+    // const { Form } = CamundaForm;
+
+    // UserTask 선택 시 formKey 추출 → form.html 로딩
+    modeler.get('eventBus').on('selection.changed', async (e) => {
+      console.log(e)
+      const selection = e.newSelection;
+      // const selection = modeler.get('selection');
+      if (selection.length !== 1) {
+        formContainer.innerHTML = 'UserTask를 선택하세요';
+        return;
+      }
+
+      const element = selection[0];
+      const bo = element.businessObject;
+      bo.formKey = 'embedded:form.html';
+      console.log(bo)
+      // UserTask + formKey 가 있는 경우만
+      if (bo.$type === 'bpmn:UserTask' && bo.formKey && bo.formKey.startsWith('embedded:')) {
+        const formHtmlath = bo.formKey.split(':').pop(); // embedded:form.html → form.html
+        const formJslath = 'form.js'; // embedded:form.html → form.html
+
+        const resHtml = await fetch(formHtmlath);
+        const resJs = await fetch(formJslath).then(response => response.text());;
+        const script = document.createElement('script');
+        script.textContent = resJs;
+        document.body.appendChild(script);
+        const html = await resHtml.text();
+
+        formContainer.innerHTML = html;
+        // 외부 form.js 렌더링 함수 호출
+        if (typeof window.renderFormLogic === 'function') {
+          window.renderFormLogic();
+        }
+      } else {
+        formContainer.innerHTML = '선택된 태스크에 유효한 formKey가 없습니다.';
+      }
+    });
+  })();
+</script>
+
+</body>
+</html>

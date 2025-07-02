@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>BPMN 속성 패널 확장 예제</title>
+  <link rel="stylesheet" href="./vendor/bpmn-js/assets/diagram-js.css" />
+  <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/bpmn-embedded.css" />
+  <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/properties-panel.css" />
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: sans-serif;
+    }
+    #container {
+      display: flex;
+      height: 100%;
+    }
+    #canvas {
+      flex: 1;
+      height: 100%;
+      border-right: 1px solid #ccc;
+    }
+    #properties {
+      width: 300px;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <h3 style="margin-left: 20px;">
+    변경 내용 : Bpmn PanelModule + Camuda PanelModule을 사용하여 BPMN 속성 패널 확장
+  </h3>
+  <div id="container">
+    <div style="padding: 20px;"><button id="save-button" style="position: absolute; top: 10px; right: 10px; z-index: 1000;">Save XML</button></div>
+    <div id="canvas"></div>
+    <div id="properties"></div>
+  </div>
+
+  <!-- BPMN JS -->
+  <!-- <script src="./vendor/bpmn-js/assets/bpmn-modeler-v11.5.0.js"></script> -->
+  <script src="./vendor/bpmn-js/assets/bpmn-modeler-v18.6.2.js"></script>
+
+  <!-- Properties Panel -->
+  <script src="./vendor/bpmn-js/assets/bpmn-js-properties-panel-v5.30.0.js"></script>
+
+
+  <script>
+    (async function async () {
+
+      const camundaModdle = await fetch('./json/camundaModdle.json').then(response => response.json());
+      const customModdle = await fetch('./json/customModdle.json').then(response => response.json());
+
+
+      const { BpmnPropertiesPanelModule, BpmnPropertiesProviderModule } = window.BpmnJSPropertiesPanel;
+
+      // Custom Provider
+      class CustomPropertiesProvider {
+        constructor(propertiesPanel, translate, moddle, modeling) {
+          this.getGroups = (element) => {
+            return (groups) => {
+              const bo = element.businessObject;
+              if (bo.$type !== 'bpmn:Task') return groups;
+
+              groups.push({
+                id: 'custom',
+                label: translate('custom properties'),
+                entries: [
+                  {
+                    id: 'taskType',
+                    component: 'textarea',
+                    get: () => ({ taskType: bo.$attrs?.['custom:taskType'] || '' }),
+                    set: () => {}
+                  }
+                ],
+                tooltip: translate('Make sure you know what you are doing!')
+              });
+
+              return groups;
+            };
+          };
+
+          propertiesPanel.registerProvider(500, this);
+        }
+      }
+      CustomPropertiesProvider.$inject = ['propertiesPanel', 'translate', 'moddle', 'modeling'];
+
+      const bpmnModeler = new BpmnModeler({
+        container: '#canvas',
+        propertiesPanel: {
+          parent: '#properties',
+        },
+        additionalModules: [
+          window.BpmnJSPropertiesPanel.BpmnPropertiesPanelModule,
+          window.BpmnJSPropertiesPanel.BpmnPropertiesProviderModule,
+          window.BpmnJSPropertiesPanel.CamundaPlatformPropertiesProviderModule,
+          window.BpmnJSPropertiesPanel.CamundaPlatformTooltipProvider,
+          {
+            __init__: ['customPropertiesProvider'],
+            customPropertiesProvider: ['type', CustomPropertiesProvider]
+          }
+        ],
+        moddleExtensions: {
+          camunda: camundaModdle,
+          custom: customModdle
+        }
+      });
+
+      document.getElementById('save-button').addEventListener('click', () => {
+        bpmnModeler.saveXML({ format: true }).then(({ xml }) => {
+          console.log('✅ 저장된 XML:\n', xml);
+          const blob = new Blob([xml], { type: 'application/xml' });
+          const url = URL.createObjectURL(blob);
+
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'diagram.bpmn';
+          a.click();
+
+          URL.revokeObjectURL(url);
+        }).catch(err => {
+          console.error('❌ XML 저장 실패:', err);
+        });
+      });
+      fetch('./xml/test1.xml')
+        .then(response => response.text())
+        .then(xml => {
+          return bpmnModeler.importXML(xml).then(() => {
+            const canvas = bpmnModeler.get('canvas');
+
+            requestAnimationFrame(() => {
+              // 현재 뷰박스 얻기
+              const viewbox = canvas.viewbox();
+
+              // 원하는 위치로 이동
+              canvas.viewbox({
+                x: -40,
+                y: 0,
+                width: viewbox.width,
+                height: viewbox.height
+              });
+            });
+          }).catch(err => {
+            console.error('Failed to load BPMN diagram:', err);
+          });
+        });
+
+    })();
+  </script>
+</body>
+</html>

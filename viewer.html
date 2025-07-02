@@ -10,15 +10,13 @@
     -->
 
         <!-- required modeler styles -->
-    <link rel="stylesheet" href="https://unpkg.com/bpmn-js@18.6.2/dist/assets/bpmn-js.css">
-    <link rel="stylesheet" href="https://unpkg.com/bpmn-js@18.6.2/dist/assets/diagram-js.css">
-    <link rel="stylesheet" href="https://unpkg.com/bpmn-js@18.6.2/dist/assets/bpmn-font/css/bpmn.css">
+    <link rel="stylesheet" href="./vendor/bpmn-js/assets/diagram-js.css" />
+    <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/bpmn-embedded.css" />
+    <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/properties-panel.css" />
 
     <!-- viewer distro (with pan and zoom) -->
-    <script src="https://unpkg.com/bpmn-js@18.6.2/dist/bpmn-navigated-viewer.development.js"></script>
+    <script src="./vendor/bpmn-js/assets/bpmn-navigated-viewer-v18.6.2.js"></script>
 
-    <!-- needed for this example only -->
-    <!-- <script src="https://unpkg.com/jquery@3.3.1/dist/jquery.js"></script> -->
 
     <!-- example styles -->
     <style>
@@ -41,7 +39,7 @@
       }
 
       .needs-discussion:not(.djs-connection) .djs-visual > :nth-child(1) {
-        stroke: rgba(66, 180, 21, 0.7) !important; /* color elements as red */
+        stroke: rgba(199, 5, 47, 0.7) !important; /* color elements as red */
       }
     </style>
   </head>
@@ -53,7 +51,7 @@
       var diagramUrl = 'https://cdn.statically.io/gh/bpmn-io/bpmn-js-examples/dfceecba/starter/diagram.bpmn';
 
       // viewer instance
-      var bpmnViewer = new BpmnJS({
+      var bpmnViewer = new BpmnNavigatedViewer({
         container: '#canvas'
       });
 
@@ -99,7 +97,17 @@
       // load external diagram file via AJAX and open it
       fetch(diagramUrl)
         .then((res) => res.text())
-        .then((xml) => openDiagram(xml))
+        .then((xml) => {
+          openDiagram(xml);
+
+          // 우클릭 시 이벤트
+          bpmnViewer.on('element.contextmenu', 1500, (event) => {
+            event.originalEvent.preventDefault();
+            event.originalEvent.stopPropagation();
+
+            console.log(event);
+          });
+        })
         .catch((err) => console.error('Modeler Error:', err))
     </script>
     <!--

@@ -1,0 +1,21 @@
+{
+  "name": "custom",
+  "uri": "http://custom",
+  "prefix": "custom",
+  "xml": {
+    "tagAlias": "lowerCase"
+  },
+  "types": [
+    {
+      "name": "TaskProperties",
+      "extends": [ "bpmn:Task" ],
+      "properties": [
+        {
+          "name": "taskType",
+          "isAttr": true,
+          "type": "String"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="./vendor/bpmn-js/assets/diagram-js.css" />
+  <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/bpmn-embedded.css" />
+  <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/properties-panel.css" />
+  <title>BPMN Element Creator with Labels</title>
+  <style>
+    html, body, #canvas {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    #popup {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: white;
+      padding: 10px;
+      border: 1px solid #ccc;
+      z-index: 10;
+      flex-direction: column;
+      gap: 5px;
+
+      color: #111;
+      position: absolute;
+      transform: translate(-50%, -50%);
+      width: 200px;
+      height: 280px;
+    }
+    #popup input, #popup select, #popup button {
+      padding: 5px;
+      font-size: 14px;
+    }
+
+    .hidden {
+      display: none;
+    }
+    .flex {
+      display: flex;
+    }
+
+  </style>
+
+  <!-- BPMN JS -->
+  <!-- <script src="./vendor/bpmn-js/assets/bpmn-modeler-v11.5.0.js"></script> -->
+  <script src="./vendor/bpmn-js/assets/bpmn-modeler-v18.6.2.js"></script>
+</head>
+<body>
+
+<div id="popup" class="panel hidden">
+  <label for="elementType">겍체 선택:</label>
+  <select id="elementType">
+    <option value="">선택하세요</option>
+    <option value="bpmn:StartEvent">Start Event</option>
+    <option value="bpmn:Task">Task</option>
+    <option value="bpmn:ExclusiveGateway">Exclusive Gateway</option>
+  </select>
+
+  <label for="flowType">Flow 선택:</label>
+  <select id="flowType">
+    <option value="">선택하세요</option>
+    <option value="bpmn:SequenceFlow">실선</option>
+    <option value="bpmn:Association">점선</option>
+  </select>
+  <label for="elementName">Name(Label):</label>
+  <input type="text" id="elementName" placeholder="예: 사용자 태스크">
+
+  <button id="createBtn">객체 생성</button>
+  <button id="closeBtn">닫기</button>
+</div>
+
+  <div style="margin-left: 20px; font-size: 11px;">
+    <br />
+<h2>테스트 시나리오</h2>
+
+1. StartEvent를 생성<br />
+2. StartEvent 우클릭 → 요소(Task) 선택, Flow(실선) 선택, Name(User)을 입력하고 저장<br />
+3. Label이 User인 Task 객체 생성 후 실선으로 연결 확인<br />
+4. User Task 우클릭 → 요소(Exclusive Gateway) 선택, Flow(실선) 선택, Name(How Much?)을 입력하고 저장<br />
+5. Label이 How Much?인 Exclusive Gateway 객체 생성 후 실선으로 연결 확인 <br />
+6. User Task 우클릭 → 요소(Task) 선택, Flow(점선) 선택, Name(User정보)을 입력하고 저장<br />
+7. Label이 User정보인 Task 객체 생성 후 점선으로 연결 확인 <br />
+  </div>
+<div id="canvas"></div>
+
+<script>
+  const bpmnModeler = new BpmnModeler({ container: '#canvas' });
+  const initialDiagram = `
+  <?xml version="1.0" encoding="UTF-8"?>
+  <bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                    xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                    xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                    id="Definitions_1"
+                    targetNamespace="http://bpmn.io/schema/bpmn">
+    <bpmn:process id="Process_1" isExecutable="false"/>
+    <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+      <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1"/>
+    </bpmndi:BPMNDiagram>
+  </bpmn:definitions>`;
+
+// console.log('saveSVG', bpmnModeler.saveSVG);
+// console.log('saveXML', bpmnModeler.saveXML);
+  bpmnModeler.importXML(initialDiagram).then(() => {
+    const modeling = bpmnModeler.get('modeling');
+    const elementFactory = bpmnModeler.get('elementFactory');
+    const selection = bpmnModeler.get('selection');
+    const canvas = bpmnModeler.get('canvas');
+    const popupEl = document.getElementById('popup')
+
+console.log('canvas', bpmnModeler.get('canvas'));
+console.log('elementRegistry', bpmnModeler.get('elementRegistry'));
+console.log('modeling', bpmnModeler.get('modeling'));
+console.log('moddle', bpmnModeler.get('moddle'));
+console.log('eventBus', bpmnModeler.get('eventBus'));
+console.log('commandStack', bpmnModeler.get('commandStack'));
+console.log('selection', bpmnModeler.get('selection'));
+console.log('zoomScroll', bpmnModeler.get('zoomScroll'));
+console.log('dragging', bpmnModeler.get('dragging'));
+console.log('toolManager', bpmnModeler.get('toolManager'));
+console.log('palette', bpmnModeler.get('palette'));
+console.log('popupMenu', bpmnModeler.get('popupMenu'));
+console.log('contextPad', bpmnModeler.get('contextPad'));
+console.log('bpmnFactory', bpmnModeler.get('bpmnFactory'));
+console.log('rules', bpmnModeler.get('rules'));
+console.log('keyboard', bpmnModeler.get('keyboard'));
+console.log('keyboardMove', bpmnModeler.get('keyboardMove'));
+console.log('outline', bpmnModeler.get('outline'));
+console.log('copyPaste', bpmnModeler.get('copyPaste'));
+    let selectedElement = null;
+
+    // click outside 이벤트 - popup 외 element click 시 팝업 닫음
+    window.addEventListener('click', (event) => {
+      const { target } = event;
+
+      if (target === popupEl || popupEl.contains(target)) {
+        return;
+      }
+
+      popupEl.classList.add('hidden');
+      popupEl.classList.remove('flex');
+    });
+    // 닫기버튼 클릭 시 팝업창 close
+    document.getElementById('closeBtn').addEventListener('click', (event) => {
+      popupEl.classList.add('hidden');
+      popupEl.classList.remove('flex');
+    });
+
+    // 생성 버튼 클릭 시
+    document.getElementById('createBtn').addEventListener('click', () => {
+      const elementType = document.getElementById('elementType').value;
+      const flowType = document.getElementById('flowType').value;
+      const elementName = document.getElementById('elementName').value.trim();
+
+      if (!elementType) {
+        alert('유형을 지정하세요.');
+        return;
+      }
+      const position = {
+        x: selectedElement.x + 220,
+        y: selectedElement.y
+      };
+
+      // shape 생성 및 이름 속성 추가
+      const shape = elementFactory.createShape({ type: elementType });
+      shape.businessObject.name = elementName;
+
+      modeling.createShape(shape, position, selectedElement.parent);
+      modeling.connect(selectedElement, shape, {
+        type: flowType || 'bpmn:SequenceFlow'
+      });
+      selection.select(shape);
+
+      popupEl.classList.add('hidden');
+      popupEl.classList.remove('flex');
+      // 입력 초기화
+      document.getElementById('elementType').value = '';
+      document.getElementById('flowType').value = '';
+      document.getElementById('elementName').value = '';
+    });
+    // 우클릭 시 이벤트
+    bpmnModeler.on('element.contextmenu', 1500, (event) => {
+      event.originalEvent.preventDefault();
+      event.originalEvent.stopPropagation();
+
+      selectedElement = event.element;
+      if (!selectedElement.parent) {
+        return;
+      }
+      popupEl.style.left = (selectedElement.x + 220) + 'px';
+      popupEl.style.top = (selectedElement.y + 200) + 'px';
+      popupEl.classList.remove('hidden');
+      popupEl.classList.add('flex');
+    });
+  }).catch(err => console.error('BPMN load error', err));
+</script>
+
+</body>
+</html>
