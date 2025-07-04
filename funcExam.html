@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BPMN-js with CreateAppendAnything + Templates</title>
+  <link rel="stylesheet" href="./vendor/bpmn-js/assets/diagram-js.css" />
+  <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/bpmn-embedded.css" />
+  <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/properties-panel.css" />
+  <style>
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+    #container  {   display: flex;
+  flex-direction: column;
+  height: 100vh !important; }
+    #canvas { height: 100vh; width: 100vw; }
+    .bjs-breadcrumbs { display: none;}
+  </style>
+</head>
+<body>
+  <div id="canvas"></div>
+
+
+  <!-- BPMN Modeler -->
+  <script src="./vendor/bpmn-js/assets/bpmn-modeler-v18.6.2.js"></script>
+
+  <!-- Create Append Anything -->
+  <script src="./vendor/bpmn-js/assets/bpmn-js-create-append-anything-v1.0.0.js"></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/bpmn-js-create-append-anything@latest/dist/index.min.js"></script> -->
+
+  <script>
+    const modeler = new BpmnModeler({
+      container: '#canvas',
+      additionalModules: [
+        CreateAppendAnythingModule,
+      ]
+    });
+
+    // elementTemplates 예제 정의
+    const elementTemplates = [
+      {
+        name: 'User Task with Assignee',
+        id: 'com.example.UserTaskWithAssignee',
+        appliesTo: ['bpmn:UserTask'],
+        properties: [
+          {
+            label: 'Assignee',
+            type: 'String',
+            binding: {
+              type: 'camunda:property',
+              name: 'assignee'
+            }
+          }
+        ]
+      },
+      {
+        name: 'Service Task with Topic',
+        id: 'com.example.ServiceTaskWithTopic',
+        appliesTo: ['bpmn:ServiceTask'],
+        properties: [
+          {
+            label: 'Topic',
+            type: 'String',
+            binding: {
+              type: 'camunda:property',
+              name: 'topic'
+            }
+          }
+        ]
+      }
+    ];
+
+    // 초기 BPMN XML
+    const initialXML = `<?xml version="1.0" encoding="UTF-8"?>
+      <bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                        xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                        xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                        xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                        xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+                        id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
+        <bpmn:process id="Process_1" isExecutable="true">
+          <bpmn:startEvent id="StartEvent_1" name="Start" />
+        </bpmn:process>
+        <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+          <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
+            <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+              <dc:Bounds x="100" y="100" width="36" height="36" />
+            </bpmndi:BPMNShape>
+          </bpmndi:BPMNPlane>
+        </bpmndi:BPMNDiagram>
+      </bpmn:definitions>`;
+
+    async function init() {
+      try {
+        await modeler.importXML(initialXML);
+        console.log(modeler.get('elementTemplatesLoader'))
+        // await modeler.get('elementTemplatesLoader').setTemplates(elementTemplates);
+        console.log('✅ 모델러 초기화 완료, 템플릿 로드됨');
+      } catch (err) {
+        console.error('모델러 초기화 오류:', err);
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

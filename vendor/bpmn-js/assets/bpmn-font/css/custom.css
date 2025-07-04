@@ -1,0 +1,12 @@
+.bjs-breadcrumbs { display: none;}
+.djs-popup-body .entry {
+    height: 32px;
+}
+.djs-popup.color-picker .entry {
+    margin: 0;
+}
+
+.djs-popup.color-picker .djs-popup-group {
+  display: grid;
+  grid: auto-flow / 1fr 1fr 1fr;
+}

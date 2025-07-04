@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>BPMN Role/Domain 기반 필터링</title>
+  <link rel="stylesheet" href="./vendor/bpmn-js/assets/diagram-js.css" />
+  <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/bpmn-embedded.css" />
+  <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/properties-panel.css" />
+  <style>
+    html, body, #canvas { height: 100%; margin: 0; padding: 0; }
+
+    #container, #canvas {
+      height: 70%;
+      width: 50%;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div style="margin-left: 20px; font-size: 11px;">
+    <br />
+<h2>테스트 시나리오</h2>
+<p>
+  Domain을 변경하면 좌측 팔레트의 모델 객체(아이콘)가 해당 Domain에 맞게 동적으로 변경됩니다.<br>
+  <ul>
+    <li><b>finance</b>: StartEvent, IntermediateThrowEvent, EndEvent, ExclusiveGateway, Task (5개)</li>
+    <li><b>hr</b>: StartEvent, DataStoreReference, DataObjectReference, SubProcess (4개)</li>
+    <li><b>its</b>: StartEvent, SubProcess (2개)</li>
+  </ul>
+</p>
+1. 최초 접속 시 Domain이 finance로 5개 model객체 노출 확인<br />
+2. Domain을 hr로 변경하여 4개 model객체로 변경되어 노출 확인<br />
+3. Domain을 its로 변경하여 2개 model객체로 변경되어 노출 확인<br /><br />
+Domain : <select id="domain" name="domain">
+  <option value="finance">finance</option>
+  <option value="hr">hr</option>
+  <option value="its">its</option>
+</select>
+<br /><br />
+  </div>
+  <div id="canvas"></div>
+
+  <script src="./vendor/bpmn-js/assets/bpmn-modeler-v18.6.2.js"></script>
+  <!-- <script src="./utils/index.js"></script> -->
+  <script src="./func/index.js"></script>
+  <script>
+    const userContext = {
+      role: 'admin',
+      domain: 'finance'    // hr → Task 버튼 없음, finance → subprocess 버튼 있음
+    };
+
+    // Custom Palette Provider
+    class CustomPaletteProvider {
+      constructor(palette, create, elementFactory, translate, globalConnect, handTool, lassoTool, spaceTool, userContext) {
+        this.create = create;
+        this.elementFactory = elementFactory;
+        this.translate = translate;
+        this.globalConnect = globalConnect;
+        this.handTool = handTool;
+        this.lassoTool = lassoTool;
+        this.spaceTool = spaceTool;
+        this.userContext = userContext;
+
+        palette.registerProvider(this);
+      }
+
+      getPaletteEntries() {
+        const { create, elementFactory, translate, userContext, globalConnect, handTool, lassoTool, spaceTool } = this;
+        let returnVal = {
+          // 🔧 Activate group: 기본 도구들
+          'hand-tool': {
+            group: 'tools',
+            className: 'bpmn-icon-hand-tool',
+            title: translate('Activate the hand tool'),
+            action: {
+              click: function () {
+                handTool.activate();
+              }
+            }
+          },
+          'lasso-tool': {
+            group: 'tools',
+            className: 'bpmn-icon-lasso-tool',
+            title: translate('Activate the lasso tool'),
+            action: {
+              click: function () {
+                lassoTool.activate();
+              }
+            }
+          },
+          'space-tool': {
+            group: 'tools',
+            className: 'bpmn-icon-space-tool',
+            title: translate('Activate the space tool'),
+            action: {
+              click: function () {
+                spaceTool.activate();
+              }
+            }
+          },
+          'global-connect-tool': {
+            group: 'tools',
+            className: 'bpmn-icon-connection-multi',
+            title: translate('Activate the global connect tool'),
+            action: {
+              click: function (event) {
+                globalConnect.start(event);
+              }
+            }
+          },
+          'tool-separator': {
+            group: 'tools',
+            separator: true
+          },
+        }
+        if (userContext.domain === 'finance') {
+          returnVal = {
+            ...returnVal,
+            'create.startEvent': {
+            group: 'model',
+              className: 'bpmn-icon-start-event-none',
+              title: 'Create StartEvent',
+              action: {
+                dragstart: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:StartEvent' });
+                  create.start(event, shape);
+                },
+                click: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:StartEvent' });
+                  create.start(event, shape);
+                }
+              }
+            },
+            'create.intermediateThrowEvent': {
+              group: 'model',
+              className: 'bpmn-icon-intermediate-event-none',
+              title: 'Create IntermediateThrowEvent',
+              action: {
+                dragstart: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:IntermediateThrowEvent' });
+                  create.start(event, shape);
+                },
+                click: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:IntermediateThrowEvent' });
+                  create.start(event, shape);
+                }
+              }
+            },
+            'create.endEvent': {
+              group: 'model',
+              className: 'bpmn-icon-end-event-none',
+              title: 'Create EndEvent',
+              action: {
+                dragstart: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:EndEvent' });
+                  create.start(event, shape);
+                },
+                click: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:EndEvent' });
+                  create.start(event, shape);
+                }
+              }
+            },
+            'create.exclusiveGateway': {
+              group: 'model',
+              className: 'bpmn-icon-gateway-xor',
+              title: 'Create ExclusiveGateway',
+              action: {
+                dragstart: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:ExclusiveGateway' });
+                  create.start(event, shape);
+                },
+                click: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:ExclusiveGateway' });
+                  create.start(event, shape);
+                }
+              }
+            },
+            'create.task': {
+              group: 'model',
+              className: 'bpmn-icon-task',
+              title: 'Create Task',
+              action: {
+                dragstart: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:Task' });
+                  create.start(event, shape);
+                },
+                click: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:Task' });
+                  create.start(event, shape);
+                }
+              }
+            },
+          };
+        } else if (userContext.domain === 'hr') {
+          returnVal = {
+            ...returnVal,
+            'create.startEvent': {
+              group: 'model',
+              className: 'bpmn-icon-start-event-none',
+              title: 'Create StartEvent',
+              action: {
+                dragstart: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:StartEvent' });
+                  create.start(event, shape);
+                },
+                click: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:StartEvent' });
+                  create.start(event, shape);
+                }
+              }
+            },
+            'create.dataStoreReference': {
+              group: 'model',
+              className: 'bpmn-icon-data-store',
+              title: 'Create DataStoreReference',
+              action: {
+                dragstart: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:DataStoreReference' });
+                  create.start(event, shape);
+                },
+                click: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:DataStoreReference' });
+                  create.start(event, shape);
+                }
+              }
+            },
+            'create.dataObjectReference': {
+              group: 'model',
+              className: 'bpmn-icon-data-object',
+              title: 'Create DataObjectReference',
+              action: {
+                dragstart: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:DataObjectReference' });
+                  create.start(event, shape);
+                },
+                click: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:DataObjectReference' });
+                  create.start(event, shape);
+                }
+              }
+            },
+            'create.subProcess': {
+              group: 'model',
+              className: 'bpmn-icon-subprocess-expanded',
+              title: 'Create DataObjectRefSubProcesserence',
+              action: {
+                dragstart: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:SubProcess' });
+                  create.start(event, shape);
+                },
+                click: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:SubProcess' });
+                  create.start(event, shape);
+                }
+              }
+            },
+          }
+        } else if (userContext.domain === 'its') {
+          returnVal = {
+            ...returnVal,
+            'create.startEvent': {
+              group: 'model',
+              className: 'bpmn-icon-start-event-none',
+              title: 'Create StartEvent',
+              action: {
+                dragstart: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:StartEvent' });
+                  create.start(event, shape);
+                },
+                click: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:StartEvent' });
+                  create.start(event, shape);
+                }
+              }
+            },
+            'create.subProcess': {
+              group: 'model',
+              className: 'bpmn-icon-subprocess-expanded',
+              title: 'Create DataObjectRefSubProcesserence',
+              action: {
+                dragstart: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:SubProcess' });
+                  create.start(event, shape);
+                },
+                click: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:SubProcess' });
+                  create.start(event, shape);
+                }
+              }
+            },
+          }
+        }
+
+        return returnVal;
+      }
+    }
+
+    // Custom Context Pad Provider
+    class CustomContextPadProvider {
+      constructor(contextPad, modeling, elementFactory, create, translate, globalConnect, handTool, lassoTool, spaceTool, userContext) {
+        this.modeling = modeling;
+        this.elementFactory = elementFactory;
+        this.create = create;
+        this.translate = translate;
+        this.globalConnect = globalConnect;
+        this.handTool = handTool;
+        this.lassoTool = lassoTool;
+        this.spaceTool = spaceTool;
+        this.userContext = userContext;
+
+        contextPad.registerProvider(this);
+      }
+
+      getContextPadEntries(element) {
+        const { elementFactory, create, translate, userContext, globalConnect, handTool, lassoTool, spaceTool } = this;
+        const actions = {};
+        if (userContext.domain === 'finance') {
+          actions['append.task'] = {
+            group: 'model',
+            className: 'bpmn-icon-task',
+            title: 'Append Task',
+            action: {
+              click: (event) => {
+                const shape = elementFactory.createShape({ type: 'bpmn:Task' });
+                shape.businessObject.name = 'New Task';
+                create.start(event, shape, element);
+              }
+            }
+          };
+        }
+
+        return {
+          'append.task': {
+            group: 'model',
+            className: 'bpmn-icon-task',
+            title: 'Append Task',
+            action: {
+              click: (event) => {
+                const shape = elementFactory.createShape({ type: 'bpmn:Task' });
+                shape.businessObject.name = 'New Task';
+                create.start(event, shape, element);
+              }
+            }
+          }
+        };
+      }
+    }
+
+    // 사용자 정의 모듈
+    const CustomModule = {
+      __init__: ['customPaletteProvider', 'customContextPadProvider'],
+      paletteProvider: ['value', null], // <-- 기본 palette 제거!
+      contextPadProvider: ['value', null], // <-- 기본 ContextPad 제거!
+      customPaletteProvider: [
+        'type',
+        function(palette, create, elementFactory, translate, globalConnect, handTool, lassoTool, spaceTool) {
+          return new CustomPaletteProvider(palette, create, elementFactory, translate, globalConnect, handTool, lassoTool, spaceTool, userContext);
+        }
+      ],
+      customContextPadProvider: [
+        'type',
+        function(contextPad, modeling, elementFactory, create, translate, globalConnect, handTool, lassoTool, spaceTool) {
+          return new CustomContextPadProvider(contextPad, modeling, elementFactory, create, translate, globalConnect, handTool, lassoTool, spaceTool, userContext);
+        }
+      ]
+    };
+
+    let bpmnModeler = new BpmnModeler({
+      container: '#canvas',
+      additionalModules: [ CustomModule ],
+    });
+
+    const diagram = `<?xml version="1.0" encoding="UTF-8"?>
+    <bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                      xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                      xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                      xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                      id="Definitions_1"
+                      targetNamespace="http://bpmn.io/schema/bpmn">
+      <bpmn:process id="Process_1" isExecutable="false">
+        <bpmn:startEvent id="StartEvent_1"/>
+      </bpmn:process>
+      <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+        <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
+          <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+            <dc:Bounds x="100" y="100" width="36" height="36"/>
+          </bpmndi:BPMNShape>
+        </bpmndi:BPMNPlane>
+      </bpmndi:BPMNDiagram>
+    </bpmn:definitions>`;
+
+    bpmnModeler.importXML(diagram).then(() => {
+      document.getElementById('domain').addEventListener('change', (event) => {
+        console.log(event.target.value);
+        userContext.domain = event.target.value;
+        bpmnModeler.destroy();
+        bpmnModeler = null;
+      // }
+
+        bpmnModeler = new BpmnModeler({
+            container: '#canvas',
+            additionalModules: [ CustomModule ],
+        });
+      })
+    }).catch(err => {
+      console.error('Diagram import failed', err);
+    });
+  </script>
+</body>
+</html>

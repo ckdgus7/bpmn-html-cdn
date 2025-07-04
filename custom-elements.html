@@ -7,8 +7,9 @@
   <link rel="stylesheet" href="./vendor/bpmn-js/assets/diagram-js.css" />
   <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/bpmn-embedded.css" />
   <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/properties-panel.css" />
+  <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/custom.css" />
+  <link rel="stylesheet" href="https://unpkg.com/bpmn-js-color-picker/colors/color-picker.css" />
   <link rel="stylesheet" href="css/app.css" />
-
 </head>
 <body>
   <h3 style="margin-left: 20px;">
@@ -18,6 +19,7 @@
     3. Palette와 ContextPad에서 Task 객체를 생성할 때 적합성 점수를 설정할 수 있습니다.<br />
     4. 점수가 75 초과이면 녹색, 25 초과 75 이하면 노란색, 25 이하이면 빨간색으로 표시됩니다.<br />
     5. Task 객체의 라벨을 변경할 때 유효성 검사를 수행하여 '개발', '설계', '디자인' 텍스트만 입력 가능합니다.<br />
+  <div style="padding: 10px;"><button id="save-button">Save XML</button></div>
   </h3>
   <div id="container"></div>
   <div id="quality-assurance" class="panel hidden">
@@ -51,7 +53,10 @@
   <!-- BPMN JS -->
   <!-- <script src="./vendor/bpmn-js/assets/bpmn-modeler-v11.5.0.js"></script> -->
   <script src="./vendor/bpmn-js/assets/bpmn-modeler-v18.6.2.js"></script>
+  <script src="./vendor/bpmn-js/assets/bpmn-js-create-append-anything-v1.0.0.js"></script>
+  <script src="./vendor/bpmn-js/assets/bpmn-js-color-picker-v0.7.1.js"></script>
   <script src="./utils/index.js"></script>
+  <script src="./func/index.js"></script>
   <script>
 
   (async function async () {
@@ -60,9 +65,9 @@
       SUITABILITY_SCORE_LOW = 25;
     const HIGH_PRIORITY = 1500;
 
+    console.log(window)
 
-
-    const CustomPalette = class CustomPalette {
+    const customPalette = class CustomPalette {
       constructor(bpmnFactory, create, elementFactory, palette, translate) {
         this.bpmnFactory = bpmnFactory;
         this.create = create;
@@ -80,11 +85,12 @@
           translate
         } = this;
 
-        function createTask(suitabilityScore) {
+        function createTask(name, suitabilityScore) {
           return function(event) {
             const businessObject = bpmnFactory.create('bpmn:Task');
 
             businessObject.suitable = suitabilityScore;
+            businessObject.name = name;
 
             const shape = elementFactory.createShape({
               type: 'bpmn:Task',
@@ -101,33 +107,35 @@
             className: 'bpmn-icon-task red',
             title: translate('Create Task with low suitability score'),
             action: {
-              dragstart: createTask(SUITABILITY_SCORE_LOW),
-              click: createTask(SUITABILITY_SCORE_LOW)
+              dragstart: createTask('개발', SUITABILITY_SCORE_LOW),
+              click: createTask('개발', SUITABILITY_SCORE_LOW)
             }
           },
           'create.average-task': {
             group: 'activity',
             className: 'bpmn-icon-task yellow',
+            name: '설계',
             title: translate('Create Task with average suitability score'),
             action: {
-              dragstart: createTask(SUITABILITY_SCORE_AVERAGE),
-              click: createTask(SUITABILITY_SCORE_AVERAGE)
+              dragstart: createTask('설계', SUITABILITY_SCORE_AVERAGE),
+              click: createTask('설계', SUITABILITY_SCORE_AVERAGE)
             }
           },
           'create.high-task': {
             group: 'activity',
             className: 'bpmn-icon-task green',
+            name: '디자인',
             title: translate('Create Task with high suitability score'),
             action: {
-              dragstart: createTask(SUITABILITY_SCORE_HIGH),
-              click: createTask(SUITABILITY_SCORE_HIGH)
+              dragstart: createTask('디자인', SUITABILITY_SCORE_HIGH),
+              click: createTask('디자인', SUITABILITY_SCORE_HIGH)
             }
           }
         };
       }
     }
 
-    CustomPalette.$inject = [
+    customPalette.$inject = [
       'bpmnFactory',
       'create',
       'elementFactory',
@@ -135,13 +143,15 @@
       'translate'
     ];
 
-    const CustomContextPad = class CustomContextPad {
+    // 빈 custom class
+    // customPalette = class CustomPalette {};
+
+    let customContextPad = class CustomContextPad {
       constructor(bpmnFactory, config, contextPad, create, elementFactory, injector, translate) {
         this.bpmnFactory = bpmnFactory;
         this.create = create;
         this.elementFactory = elementFactory;
         this.translate = translate;
-
         if (config.autoPlace !== false) {
           this.autoPlace = injector.get('autoPlace', false);
         }
@@ -158,12 +168,13 @@
           translate
         } = this;
 
-        function appendServiceTask(suitabilityScore) {
+        function appendServiceTask(name, suitabilityScore) {
           return function(event, element) {
             if (autoPlace) {
               const businessObject = bpmnFactory.create('bpmn:Task');
 
               businessObject.suitable = suitabilityScore;
+              businessObject.name = name;
 
               const shape = elementFactory.createShape({
                 type: 'bpmn:Task',
@@ -177,11 +188,12 @@
           };
         }
 
-        function appendServiceTaskStart(suitabilityScore) {
+        function appendServiceTaskStart(name, suitabilityScore) {
           return function(event) {
             const businessObject = bpmnFactory.create('bpmn:Task');
 
             businessObject.suitable = suitabilityScore;
+            businessObject.name = name;
 
             const shape = elementFactory.createShape({
               type: 'bpmn:Task',
@@ -193,38 +205,38 @@
         }
 
         return {
-          'append.low-task': {
+          'create.low-task': {
             group: 'model',
             className: 'bpmn-icon-task red',
             title: translate('Append Task with low suitability score'),
             action: {
-              click: appendServiceTask(SUITABILITY_SCORE_LOW),
-              dragstart: appendServiceTaskStart(SUITABILITY_SCORE_LOW)
+              click: appendServiceTask('개발', SUITABILITY_SCORE_LOW),
+              dragstart: appendServiceTaskStart('개발', SUITABILITY_SCORE_LOW)
             }
           },
-          'append.average-task': {
+          'create.average-task': {
             group: 'model',
             className: 'bpmn-icon-task yellow',
             title: translate('Append Task with average suitability score'),
             action: {
-              click: appendServiceTask(SUITABILITY_SCORE_AVERAGE),
-              dragstart: appendServiceTaskStart(SUITABILITY_SCORE_AVERAGE)
+              click: appendServiceTask('설계', SUITABILITY_SCORE_AVERAGE),
+              dragstart: appendServiceTaskStart('설계', SUITABILITY_SCORE_AVERAGE)
             }
           },
-          'append.high-task': {
+          'create.high-task': {
             group: 'model',
             className: 'bpmn-icon-task green',
             title: translate('Append Task with high suitability score'),
             action: {
-              click: appendServiceTask(SUITABILITY_SCORE_HIGH),
-              dragstart: appendServiceTaskStart(SUITABILITY_SCORE_HIGH)
+              click: appendServiceTask('디자인', SUITABILITY_SCORE_HIGH),
+              dragstart: appendServiceTaskStart('디자인', SUITABILITY_SCORE_HIGH)
             }
           }
         };
       }
     }
 
-    CustomContextPad.$inject = [
+    customContextPad.$inject = [
       'bpmnFactory',
       'config',
       'contextPad',
@@ -233,6 +245,9 @@
       'injector',
       'translate'
     ];
+
+    // 빈 custom class
+    // customContextPad = class CustomContextPad {};
 
     const TASK_BORDER_RADIUS = 2,
           COLOR_GREEN = '#52B415',
@@ -338,21 +353,27 @@
 
     const customModule = {
       __init__: [ 'customContextPad', 'customPalette', 'customRenderer' ],
-      customContextPad: [ 'type', CustomContextPad ],
-      customPalette: [ 'type', CustomPalette ],
+      customContextPad: [ 'type', customContextPad ],
+      customPalette: [ 'type', customPalette ],
       customRenderer: ['type', registerCustomRenderer]
     };
     // create modeler
     const bpmnModeler = new BpmnModeler({
       container: '#container',
       additionalModules: [
-        customModule
+        customModule,
+        CreateAppendAnythingModule,
+        BpmnColorPickerModule,
       ],
       moddleExtensions: {
         qa: qaExtension
       }
     });
 
+    const utils = bpmnUtils(bpmnModeler)
+    document.getElementById('save-button').addEventListener('click', (e) => {
+      utils.downloadXML(bpmnModeler, 'diagram.bpmn')
+    })
 
     fetch('./xml/test2.xml')
       .then(response => response.text())
@@ -363,18 +384,14 @@
               modeling = bpmnModeler.get('modeling'),
               canvas = bpmnModeler.get('canvas');
 
-        requestAnimationFrame(() => {
-          // 현재 뷰박스 얻기
-          const viewbox = canvas.viewbox();
+        // canvas 크기 및 위치 설정
+        utils.setCanvas(bpmnModeler, {
+          x: -100,
+          y: 0,
+          // width: viewbox.width,
+          // height: viewbox.height
+        })
 
-          // 원하는 위치로 이동
-          canvas.viewbox({
-            x: -100,
-            y: 0,
-            width: viewbox.width,
-            height: viewbox.height
-          });
-        });
         let analysisDetails,
             businessObject,
             element,

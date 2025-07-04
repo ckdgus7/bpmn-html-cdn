@@ -46,6 +46,7 @@
   <!-- BPMN JS -->
   <!-- <script src="./vendor/bpmn-js/assets/bpmn-modeler-v11.5.0.js"></script> -->
   <script src="./vendor/bpmn-js/assets/bpmn-modeler-v18.6.2.js"></script>
+  <script src="./func/index.js"></script>
 </head>
 <body>
 
@@ -82,11 +83,16 @@
 5. Label이 How Much?인 Exclusive Gateway 객체 생성 후 실선으로 연결 확인 <br />
 6. User Task 우클릭 → 요소(Task) 선택, Flow(점선) 선택, Name(User정보)을 입력하고 저장<br />
 7. Label이 User정보인 Task 객체 생성 후 점선으로 연결 확인 <br />
+  <div style="padding: 10px;"><button id="save-button">Save XML</button></div>
   </div>
 <div id="canvas"></div>
 
 <script>
   const bpmnModeler = new BpmnModeler({ container: '#canvas' });
+    const utils = bpmnUtils(bpmnModeler)
+    document.getElementById('save-button').addEventListener('click', (e) => {
+      utils.downloadXML(bpmnModeler, 'diagram.bpmn')
+    })
   const initialDiagram = `
   <?xml version="1.0" encoding="UTF-8"?>
   <bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

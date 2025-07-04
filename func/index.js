@@ -1,0 +1,155 @@
+function bpmnUtils(bpmnModeler) {
+  const elementRegistry = bpmnModeler.get('elementRegistry');
+  const elementFactory = bpmnModeler.get('elementFactory');
+  const modeling = bpmnModeler.get('modeling');
+  const autoPlace = bpmnModeler.get('autoPlace');
+  const moddle = bpmnModeler.get('moddle');
+
+  return {
+
+    // 다이어그램이 그려진 후 인스턴스까지 변경해야 하면 실행
+    reRenderModeler(options) {
+      // 기존 인스턴스가 있다면 제거
+      // if (bpmnModeler) {
+        bpmnModeler.destroy();
+        bpmnModeler = null;
+      // }
+
+      bpmnModeler = new BpmnModeler(options);
+      return bpmnModeler;
+    },
+
+    // diagram loading (reloading도 가능)
+    async loadDiagram(xml) {
+      await bpmnModeler.importXML(xml);
+    },
+
+    // diagram을 xml로 파싱 (api 전송 시 등 xml화된 내용이 필요할 경우 사용)
+    async saveDiagram() {
+      const { xml } = await bpmnModeler.saveXML({ format: true });
+      return xml;
+    },
+
+    // xml load 후 cavas 내 viewbox 위치 및 사이즈 지정
+    setCanvas(settings={}) {
+      requestAnimationFrame(() => {
+        const canvas = bpmnModeler.get('canvas');
+        // 현재 뷰박스 얻기
+        const viewbox = canvas.viewbox();
+
+        // 원하는 위치로 이동
+        canvas.viewbox({
+          x: -100,
+          y: 0,
+          width: viewbox.width,
+          height: viewbox.height,
+          ...settings
+        });
+      });
+    },
+
+    // diagram을 xml로 다운로드
+    downloadXML(fileName) {
+      bpmnModeler.saveXML({ format: true }).then(({ xml }) => {
+        const blob = new Blob([xml], { type: 'application/xml' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+
+        URL.revokeObjectURL(url);
+      }).catch(err => {
+        console.error('❌ XML 저장 실패:', err);
+      });
+    },
+
+    // element를 추가 (ex - type=bpmn:Task, props={ name: 'Task_1'})
+    createElement(type, props = {}) {
+      return elementFactory.createShape({ type, ...props });
+    },
+
+    // 객체를 startElement의 객체 다음으로 추가
+    appendElement(element, type = 'bpmn:Task', label = '') {
+      const startElement = typeof element === 'string' ? elementRegistry.get(element) : element;
+      if (!startElement || !autoPlace) return;
+
+      const shape = elementFactory.createShape({ type });
+      autoPlace.append(startElement, shape);
+
+      if (label) {
+        modeling.updateLabel(shape, label);
+      }
+
+      return shape;
+    },
+
+    // 객체를 startElement의 객체 다음으로 병렬 게이드웨이를 추가하고 2개의 병렬 객체를 연결
+    createParallelTasks(element) {
+      const startElement = typeof element === 'string' ? elementRegistry.get(element) : element;
+      const gateway = factory.createShape({ type: 'bpmn:ParallelGateway' });
+      autoPlace.append(startElement, gateway);
+
+      const gId = gateway.id;
+      appendElementByElementId(gId, '병렬 작업 1');
+      appendElementByElementId(gId, '병렬 작업 2');
+    },
+
+    // 선택한 객체의 속성을 업데이트
+    updateProperties(element, props = {}) {
+      const updateElement = typeof element === 'string' ? elementRegistry.get(element) : element;
+      if (element) {
+        modeling.updateProperties(updateElement, props);
+      }
+    },
+
+    // 선택한 객체를 삭제
+    removeElement(element) {
+      const removeElement = typeof element === 'string' ? elementRegistry.get(element) : element;
+      if (removeElement) {
+        modeling.removeElements([removeElement]);
+      }
+    },
+
+    // 객체들끼리 연결
+    connectElementsByElementId(baseElement, targetElement, flowType) {
+      const startElement = typeof baseElement === 'string' ? elementRegistry.get(baseElement) : baseElement;
+      const endElement = typeof targetElement === 'string' ? elementRegistry.get(targetElement) : targetElement;
+      if (startElement && endElement) {
+        modeling.connect(startElement, endElement, {
+        type: flowType || 'bpmn:SequenceFlow'
+      });
+      }
+    },
+
+    // camunda property 속성 추가 (name: 'formKey', value: 'anyKey')
+    addCamundaPropertyInExtensionProperty(element, name, value) {
+      const baseElement = typeof element === 'string' ? elementRegistry.get(element) : element;
+      // const element = elementRegistry.get(elementId);
+      if (!baseElement) return;
+
+      const businessObject = baseElement.businessObject;
+
+      if (!businessObject.extensionElements) {
+        businessObject.extensionElements = moddle.create('bpmn:ExtensionElements', {
+          values: []
+        });
+      }
+
+      const extension = moddle.create('camunda:Properties', {
+        values: [
+          moddle.create('camunda:Property', {
+            name,
+            value
+          })
+        ]
+      });
+
+      businessObject.extensionElements.values.push(extension);
+      modeling.updateProperties(baseElement, {
+        extensionElements: businessObject.extensionElements
+      });
+    },
+  };
+}
