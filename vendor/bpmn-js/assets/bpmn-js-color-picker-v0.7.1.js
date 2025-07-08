@@ -85,52 +85,52 @@ function getStartPosition(contextPad, elements) {
 }
 
 const COLORS = [
-          {
-            label: 'Default',
-            fill: '#ffffff',
-            stroke: '#22242A'
-          },
-          {
-            label: 'EmergeRed',
-            fill: '#FFC2C2',
-            stroke: '#FF0000'
-          },
-          {
-            label: 'EmergeGreen',
-            fill: '#C2FFC2',
-            stroke: '#44ff00'
-          },
-          {
-            label: 'EmergeBlue',
-            fill: '#6691ff',
-            stroke: '#0048ff'
-          },
-          {
-            label: 'EmergeYellow',
-            fill: '#fdff8f', // Yellow fill
-            stroke: '#FFD700' // Gold stroke
-          },
-          {
-            label: 'DissolveRed',
-            fill: '#FFFFFF', // White fill
-            stroke: '#FF0000' // Red stroke
-          },
-          {
-            label: 'DissolveGreen',
-            fill: '#FFFFFF', // White fill
-            stroke: '#44ff00' // Green stroke
-          },
-          {
-            label: 'DissolveBlue',
-            fill: '#FFFFFF', // White fill
-            stroke: '#0048ff' // Blue stroke
-          },
-          {
-            label: 'DissolveYellow',
-            fill: '#FFFFFF', // Yellow fill
-            stroke: '#FFD700' // Gold stroke
-          }
-        ];
+  {
+    label: 'Default',
+    fill: '#ffffff',
+    stroke: '#22242A'
+  },
+  {
+    label: 'EmergeRed',
+    fill: '#FFC2C2',
+    stroke: '#FF0000'
+  },
+  {
+    label: 'EmergeGreen',
+    fill: '#C2FFC2',
+    stroke: '#44ff00'
+  },
+  {
+    label: 'EmergeBlue',
+    fill: '#6691ff',
+    stroke: '#0048ff'
+  },
+  {
+    label: 'EmergeYellow',
+    fill: '#fdff8f', // Yellow fill
+    stroke: '#FFD700' // Gold stroke
+  },
+  {
+    label: 'DissolveRed',
+    fill: '#FFFFFF', // White fill
+    stroke: '#FF0000' // Red stroke
+  },
+  {
+    label: 'DissolveGreen',
+    fill: '#FFFFFF', // White fill
+    stroke: '#44ff00' // Green stroke
+  },
+  {
+    label: 'DissolveBlue',
+    fill: '#FFFFFF', // White fill
+    stroke: '#0048ff' // Blue stroke
+  },
+  {
+    label: 'DissolveYellow',
+    fill: '#FFFFFF', // Yellow fill
+    stroke: '#FFD700' // Gold stroke
+  }
+];
 
 
 function ColorPopupProvider(config, bpmnRendererConfig, popupMenu, modeling, translate) {

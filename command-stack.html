@@ -51,7 +51,7 @@
 </head>
 <body>
   <h3 style="margin-left: 20px;padding-top: 10px;">
-    변경 내용 : Task객체를 클릭 시 Name: 진행중 => Blue, Name: 종료 => red로 변경<br />
+    변경 내용 : Task객체의 Label을 변경 시 Name: 진행중 => Blue, Name: 종료 => red로 변경<br />
     우측 속성 패널(General > Name)에서 Task 이름을 진행중이나 종료로 변경해도 색상이 자동으로 갱신됩니다.
   </h3>
   <div id="main">
@@ -81,8 +81,8 @@
                   id="Definitions_1"
                   targetNamespace="http://bpmn.io/schema/bpmn">
   <bpmn:process id="Process_1" isExecutable="true">
-    <bpmn:task id="Task_1" name="진행중"/>
-    <bpmn:task id="Task_2" name="종료"/>
+    <bpmn:task id="Task_1"/>
+    <bpmn:task id="Task_2"/>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
@@ -151,8 +151,8 @@
         }
       };
 
-      // 클릭 시 색상 적용
-      eventBus.on('element.click', event => updateTaskColor(event.element));
+      // label 변경 시 색상 적용
+      bpmnModeler.on('element.changed', event => updateTaskColor(event.element));
 
       // 이름 변경 시 색상 자동 갱신
       eventBus.on('commandStack.element.updateProperties.executed', event => {

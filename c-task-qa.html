@@ -114,7 +114,7 @@
 7. 품질보증 Task 더블클릭 → 등록된 2개의 코멘트 확인
   </div>
   <div style="padding: 10px;"><button id="save-button">Save XML</button></div>
-  <div id="container"></div>
+  <div id="canvas"></div>
   <div id="commnent-popup" class="panel hidden">
     <form id="form">
       <p>
@@ -243,7 +243,7 @@
     const qaExtension = await fetch('./json/c-task-qa-extention.json')
       .then(response => response.json());
 
-    const containerEl = document.getElementById('container'),
+    const containerEl = document.getElementById('canvas'),
           popupEl = document.getElementById('commnent-popup'),
           detailPopupEl = document.getElementById('detail-popup'),
           detailListEl = document.getElementById('detail-list'),
@@ -262,7 +262,7 @@
     };
     // create modeler
     const bpmnModeler = new BpmnModeler({
-      container: '#container',
+      container: '#canvas',
       additionalModules: [
         customModule
       ],

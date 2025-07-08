@@ -24,8 +24,7 @@
   <div id="canvas"></div>
 
   <!-- BPMN JS -->
-  <script src="./vendor/bpmn-js/assets/bpmn-modeler-v11.5.0.js"></script>
-  <!-- <script src="./vendor/bpmn-js/assets/bpmn-modeler-v18.6.2.js"></script> -->
+  <script src="./vendor/bpmn-js/assets/bpmn-modeler-v18.6.2.js"></script>
 
   <script>
 
@@ -36,6 +35,8 @@
 
         eventBus.on('render.shape', 2000, (event) => {
           const { element, gfx } = event;
+          console.log(element)
+          console.log(gfx)
           if (element.type === 'bpmn:Task') {
             this.drawCustomTask(gfx, element);
             event.stopPropagation();

@@ -156,18 +156,33 @@
       let selectedElement;
       // click 시 selected element저장
       bpmnModeler.on('element.click', event => selectedElement = event.element);
-      eventBus.on('selection.changed', function (e) {
-        const selected = e.newSelection;
-        if (selected.length) {
-          console.log('선택됨:', selected[0].id);
-          selectedElement = selected[0];
-        }
-      });
+
       // 클래스 제거 및 추가를 통한 색상 적용
       const updateTaskColor = (element, changeLabel, target) => {
         // console.log(event.context.businessObject.$type)
         // const element = event.context.element;
         if (!element || element.businessObject.$type !== 'bpmn:Task') return;
+
+        // 기존 마커 제거
+        canvas.removeMarker(element, 'blue-task');
+        canvas.removeMarker(element, 'red-task');
+        canvas.removeMarker(element, 'green-task');
+        // 나와 연결된 객체 삭제 (connection, object 둘다 삭제)
+        const toRemove = [];
+        // 연결된 시퀀스 플로우도 포함
+        if (element.incoming) {
+          toRemove.push(...element.incoming);
+        }
+        if (element.incoming.length && element.incoming[0]) {
+          toRemove.push(element.incoming[0].target);
+        }
+        if (element.outgoing) {
+          toRemove.push(...element.outgoing);
+        }
+        if (element.outgoing.length && element.outgoing[0]) {
+          toRemove.push(element.outgoing[0].target);
+        }
+        modeling.removeElements(toRemove);
 
         let elementType;
         if (changeLabel === 'Take1') {
@@ -192,34 +207,11 @@
         modeling.connect(selectedElement, shape, {
           type: 'bpmn:SequenceFlow'
         });
-        selection.select(shape);
+        // selection.select(shape);
       };
 
       // label 변경 시 색상 적용 (contextPad, property 변경 시 둘다 적용)
       eventBus.on('commandStack.element.updateLabel.postExecute', event => updateTaskColor(event.context.element, event.context.newLabel, 1));
-
-      const canvasEl = canvas.getContainer();
-      canvasEl.tabIndex = 0; // 키보드 이벤트 받으려면 필수
-
-      canvasEl.addEventListener('keydown', (e) => {
-        console.log('e', e);
-        if (e.shiftKey && e.key.toLowerCase() === 'b') {
-          console.log('keydown', e.key);
-          updateTaskColor(selectedElement, 'Take1', 1);
-        } else if (e.shiftKey && e.key.toLowerCase() === 'd') {
-          console.log('keydown', e.key);
-          updateTaskColor(selectedElement, 'Take2', 1);
-        }
-        // if (e.key === 'Delete') {
-        //   const selection = bpmnModeler.get('selection').get();
-        //   const modeling = bpmnModeler.get('modeling');
-
-        //   if (selection.length > 0) {
-        //     modeling.removeElements(selection);
-        //     console.log('선택된 요소 삭제됨');
-        //   }
-        // }
-      });
 
       // 이름 변경 시 색상 자동 갱신
       // eventBus.on('commandStack.element.updateProperties.postExecute', event => {
