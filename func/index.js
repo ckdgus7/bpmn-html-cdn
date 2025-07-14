@@ -4,9 +4,23 @@ function bpmnUtils(bpmnModeler) {
   const modeling = bpmnModeler.get('modeling');
   const autoPlace = bpmnModeler.get('autoPlace');
   const moddle = bpmnModeler.get('moddle');
+  // const selection = bpmnModeler.get('selection');
 
   return {
 
+    getBusinessObject(element) {
+      return element.businessObject || element;
+    },
+
+    getExtensionElement(businessObject, type) {
+      if (!businessObject.extensionElements) {
+        return null;
+      }
+
+      return businessObject.extensionElements.values.filter((extensionElement) => {
+        return extensionElement.$instanceOf(type);
+      })[0];
+    },
     // 다이어그램이 그려진 후 인스턴스까지 변경해야 하면 실행
     reRenderModeler(options) {
       // 기존 인스턴스가 있다면 제거
@@ -71,37 +85,18 @@ function bpmnUtils(bpmnModeler) {
     },
 
     // 객체를 startElement의 객체 다음으로 추가
-    appendElement(element, type = 'bpmn:Task', label = '') {
+    appendElement(element, type = 'bpmn:Task', name = '') {
       const startElement = typeof element === 'string' ? elementRegistry.get(element) : element;
       if (!startElement || !autoPlace) return;
 
-      const shape = elementFactory.createShape({ type });
+      const shape = this.createElement(type);
       autoPlace.append(startElement, shape);
 
-      if (label) {
-        modeling.updateLabel(shape, label);
+      if (name) {
+        modeling.updateLabel(shape, name);
       }
 
       return shape;
-    },
-
-    // 객체를 startElement의 객체 다음으로 병렬 게이드웨이를 추가하고 2개의 병렬 객체를 연결
-    createParallelTasks(element) {
-      const startElement = typeof element === 'string' ? elementRegistry.get(element) : element;
-      const gateway = factory.createShape({ type: 'bpmn:ParallelGateway' });
-      autoPlace.append(startElement, gateway);
-
-      const gId = gateway.id;
-      appendElementByElementId(gId, '병렬 작업 1');
-      appendElementByElementId(gId, '병렬 작업 2');
-    },
-
-    // 선택한 객체의 속성을 업데이트
-    updateProperties(element, props = {}) {
-      const updateElement = typeof element === 'string' ? elementRegistry.get(element) : element;
-      if (element) {
-        modeling.updateProperties(updateElement, props);
-      }
     },
 
     // 선택한 객체를 삭제
@@ -120,6 +115,25 @@ function bpmnUtils(bpmnModeler) {
         modeling.connect(startElement, endElement, {
         type: flowType || 'bpmn:SequenceFlow'
       });
+      }
+    },
+
+    // 객체를 startElement의 객체 다음으로 병렬 게이드웨이를 추가하고 2개의 병렬 객체를 연결
+    createParallelTasks(element) {
+      const startElement = typeof element === 'string' ? elementRegistry.get(element) : element;
+      const gateway = factory.createShape({ type: 'bpmn:ParallelGateway' });
+      autoPlace.append(startElement, gateway);
+
+      const gId = gateway.id;
+      appendElementByElementId(gId, '병렬 작업 1');
+      appendElementByElementId(gId, '병렬 작업 2');
+    },
+
+    // 선택한 객체의 속성을 업데이트
+    updateProperties(element, props = {}) {
+      const updateElement = typeof element === 'string' ? elementRegistry.get(element) : element;
+      if (element) {
+        modeling.updateProperties(updateElement, props);
       }
     },
 
@@ -147,7 +161,8 @@ function bpmnUtils(bpmnModeler) {
       });
 
       businessObject.extensionElements.values.push(extension);
-      modeling.updateProperties(baseElement, {
+
+      this.updateProperties(baseElement, {
         extensionElements: businessObject.extensionElements
       });
     },

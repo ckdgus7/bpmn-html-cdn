@@ -73,8 +73,8 @@ Domain : <select id="domain" name="domain">
             className: 'bpmn-icon-hand-tool',
             title: translate('Activate the hand tool'),
             action: {
-              click: function () {
-                handTool.activate();
+              click: function (event) {
+                handTool.activateHand(event);
               }
             }
           },
@@ -83,8 +83,8 @@ Domain : <select id="domain" name="domain">
             className: 'bpmn-icon-lasso-tool',
             title: translate('Activate the lasso tool'),
             action: {
-              click: function () {
-                lassoTool.activate();
+              click: function (event) {
+                lassoTool.activateSelection(event);
               }
             }
           },
@@ -93,8 +93,8 @@ Domain : <select id="domain" name="domain">
             className: 'bpmn-icon-space-tool',
             title: translate('Activate the space tool'),
             action: {
-              click: function () {
-                spaceTool.activate();
+              click: function (event) {
+                spaceTool.activateSelection(event);
               }
             }
           },
@@ -314,36 +314,201 @@ Domain : <select id="domain" name="domain">
 
       getContextPadEntries(element) {
         const { elementFactory, create, translate, userContext, globalConnect, handTool, lassoTool, spaceTool } = this;
-        const actions = {};
+        let returnVal = {};
         if (userContext.domain === 'finance') {
-          actions['append.task'] = {
+          returnVal = {
+            ...returnVal,
+            'append.startEvent': {
             group: 'model',
-            className: 'bpmn-icon-task',
-            title: 'Append Task',
-            action: {
-              click: (event) => {
-                const shape = elementFactory.createShape({ type: 'bpmn:Task' });
-                shape.businessObject.name = 'New Task';
-                create.start(event, shape, element);
+              className: 'bpmn-icon-start-event-none',
+              title: 'Create StartEvent',
+              action: {
+                dragstart: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:StartEvent' });
+                  create.start(event, shape);
+                },
+                click: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:StartEvent' });
+                  create.start(event, shape);
+                }
               }
-            }
+            },
+            'append.intermediateThrowEvent': {
+              group: 'model',
+              className: 'bpmn-icon-intermediate-event-none',
+              title: 'Create IntermediateThrowEvent',
+              action: {
+                dragstart: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:IntermediateThrowEvent' });
+                  create.start(event, shape);
+                },
+                click: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:IntermediateThrowEvent' });
+                  create.start(event, shape);
+                }
+              }
+            },
+            'append.endEvent': {
+              group: 'model',
+              className: 'bpmn-icon-end-event-none',
+              title: 'Create EndEvent',
+              action: {
+                dragstart: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:EndEvent' });
+                  create.start(event, shape);
+                },
+                click: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:EndEvent' });
+                  create.start(event, shape);
+                }
+              }
+            },
+            'append.exclusiveGateway': {
+              group: 'model',
+              className: 'bpmn-icon-gateway-xor',
+              title: 'Create ExclusiveGateway',
+              action: {
+                dragstart: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:ExclusiveGateway' });
+                  create.start(event, shape);
+                },
+                click: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:ExclusiveGateway' });
+                  create.start(event, shape);
+                }
+              }
+            },
+            'append.task': {
+              group: 'model',
+              className: 'bpmn-icon-task',
+              title: 'Create Task',
+              action: {
+                dragstart: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:Task' });
+                  create.start(event, shape);
+                },
+                click: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:Task' });
+                  create.start(event, shape);
+                }
+              }
+            },
           };
+        } else if (userContext.domain === 'hr') {
+          returnVal = {
+            ...returnVal,
+            'append.startEvent': {
+              group: 'model',
+              className: 'bpmn-icon-start-event-none',
+              title: 'Create StartEvent',
+              action: {
+                dragstart: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:StartEvent' });
+                  create.start(event, shape);
+                },
+                click: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:StartEvent' });
+                  create.start(event, shape);
+                }
+              }
+            },
+            'append.dataStoreReference': {
+              group: 'model',
+              className: 'bpmn-icon-data-store',
+              title: 'Create DataStoreReference',
+              action: {
+                dragstart: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:DataStoreReference' });
+                  create.start(event, shape);
+                },
+                click: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:DataStoreReference' });
+                  create.start(event, shape);
+                }
+              }
+            },
+            'append.dataObjectReference': {
+              group: 'model',
+              className: 'bpmn-icon-data-object',
+              title: 'Create DataObjectReference',
+              action: {
+                dragstart: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:DataObjectReference' });
+                  create.start(event, shape);
+                },
+                click: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:DataObjectReference' });
+                  create.start(event, shape);
+                }
+              }
+            },
+            'append.subProcess': {
+              group: 'model',
+              className: 'bpmn-icon-subprocess-expanded',
+              title: 'Create DataObjectRefSubProcesserence',
+              action: {
+                dragstart: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:SubProcess' });
+                  create.start(event, shape);
+                },
+                click: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:SubProcess' });
+                  create.start(event, shape);
+                }
+              }
+            },
+          }
+        } else if (userContext.domain === 'its') {
+          returnVal = {
+            ...returnVal,
+            'append.startEvent': {
+              group: 'model',
+              className: 'bpmn-icon-start-event-none',
+              title: 'Create StartEvent',
+              action: {
+                dragstart: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:StartEvent' });
+                  create.start(event, shape);
+                },
+                click: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:StartEvent' });
+                  create.start(event, shape);
+                }
+              }
+            },
+            'append.subProcess': {
+              group: 'model',
+              className: 'bpmn-icon-subprocess-expanded',
+              title: 'Create DataObjectRefSubProcesserence',
+              action: {
+                dragstart: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:SubProcess' });
+                  create.start(event, shape);
+                },
+                click: (event) => {
+                  const shape = elementFactory.createShape({ type: 'bpmn:SubProcess' });
+                  create.start(event, shape);
+                }
+              }
+            },
+          }
         }
 
-        return {
-          'append.task': {
-            group: 'model',
-            className: 'bpmn-icon-task',
-            title: 'Append Task',
-            action: {
-              click: (event) => {
-                const shape = elementFactory.createShape({ type: 'bpmn:Task' });
-                shape.businessObject.name = 'New Task';
-                create.start(event, shape, element);
-              }
-            }
-          }
-        };
+        return returnVal;
+        // return {
+        //   'append.task': {
+        //     group: 'model',
+        //     className: 'bpmn-icon-task',
+        //     title: 'Append Task',
+        //     action: {
+        //       click: (event) => {
+        //         const shape = elementFactory.createShape({ type: 'bpmn:Task' });
+        //         shape.businessObject.name = 'New Task';
+        //         create.start(event, shape, element);
+        //       }
+        //     }
+        //   }
+        // };
       }
     }
 

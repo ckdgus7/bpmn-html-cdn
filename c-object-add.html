@@ -116,25 +116,25 @@
     const canvas = bpmnModeler.get('canvas');
     const popupEl = document.getElementById('popup')
 
-console.log('canvas', bpmnModeler.get('canvas'));
-console.log('elementRegistry', bpmnModeler.get('elementRegistry'));
-console.log('modeling', bpmnModeler.get('modeling'));
-console.log('moddle', bpmnModeler.get('moddle'));
-console.log('eventBus', bpmnModeler.get('eventBus'));
-console.log('commandStack', bpmnModeler.get('commandStack'));
-console.log('selection', bpmnModeler.get('selection'));
-console.log('zoomScroll', bpmnModeler.get('zoomScroll'));
-console.log('dragging', bpmnModeler.get('dragging'));
-console.log('toolManager', bpmnModeler.get('toolManager'));
-console.log('palette', bpmnModeler.get('palette'));
-console.log('popupMenu', bpmnModeler.get('popupMenu'));
-console.log('contextPad', bpmnModeler.get('contextPad'));
-console.log('bpmnFactory', bpmnModeler.get('bpmnFactory'));
-console.log('rules', bpmnModeler.get('rules'));
-console.log('keyboard', bpmnModeler.get('keyboard'));
-console.log('keyboardMove', bpmnModeler.get('keyboardMove'));
-console.log('outline', bpmnModeler.get('outline'));
-console.log('copyPaste', bpmnModeler.get('copyPaste'));
+// console.log('canvas', bpmnModeler.get('canvas'));
+// console.log('elementRegistry', bpmnModeler.get('elementRegistry'));
+// console.log('modeling', bpmnModeler.get('modeling'));
+// console.log('moddle', bpmnModeler.get('moddle'));
+// console.log('eventBus', bpmnModeler.get('eventBus'));
+// console.log('commandStack', bpmnModeler.get('commandStack'));
+// console.log('selection', bpmnModeler.get('selection'));
+// console.log('zoomScroll', bpmnModeler.get('zoomScroll'));
+// console.log('dragging', bpmnModeler.get('dragging'));
+// console.log('toolManager', bpmnModeler.get('toolManager'));
+// console.log('palette', bpmnModeler.get('palette'));
+// console.log('popupMenu', bpmnModeler.get('popupMenu'));
+// console.log('contextPad', bpmnModeler.get('contextPad'));
+// console.log('bpmnFactory', bpmnModeler.get('bpmnFactory'));
+// console.log('rules', bpmnModeler.get('rules'));
+// console.log('keyboard', bpmnModeler.get('keyboard'));
+// console.log('keyboardMove', bpmnModeler.get('keyboardMove'));
+// console.log('outline', bpmnModeler.get('outline'));
+// console.log('copyPaste', bpmnModeler.get('copyPaste'));
     let selectedElement = null;
 
     // click outside 이벤트 - popup 외 element click 시 팝업 닫음
@@ -164,20 +164,22 @@ console.log('copyPaste', bpmnModeler.get('copyPaste'));
         alert('유형을 지정하세요.');
         return;
       }
-      const position = {
-        x: selectedElement.x + 220,
-        y: selectedElement.y
-      };
 
       // shape 생성 및 이름 속성 추가
-      const shape = elementFactory.createShape({ type: elementType });
-      shape.businessObject.name = elementName;
+      const utils = bpmnUtils(bpmnModeler);
+      utils.appendElement(selectedElement, elementType, elementName)
+      // const position = {
+      //   x: selectedElement.x + 220,
+      //   y: selectedElement.y
+      // };
+      // const shape = elementFactory.createShape({ type: elementType });
+      // shape.businessObject.name = elementName;
 
-      modeling.createShape(shape, position, selectedElement.parent);
-      modeling.connect(selectedElement, shape, {
-        type: flowType || 'bpmn:SequenceFlow'
-      });
-      selection.select(shape);
+      // modeling.createShape(shape, position, selectedElement.parent);
+      // modeling.connect(selectedElement, shape, {
+      //   type: flowType || 'bpmn:SequenceFlow'
+      // });
+      // selection.select(shape);
 
       popupEl.classList.add('hidden');
       popupEl.classList.remove('flex');
