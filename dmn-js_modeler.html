@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>dmn-js 에디터 테스트</title>
+
+    <!-- required modeler styles -->
+    <link rel="stylesheet" href="vendor/dmn-js/assets/dmn-font/css/dmn-diagram-js.css">
+    <link rel="stylesheet" href="vendor/dmn-js/assets/dmn-font/css/dmn-js-shared.css">
+    <link rel="stylesheet" href="vendor/dmn-js/assets/dmn-font/css/dmn-js-drd.css">
+    <link rel="stylesheet" href="vendor/dmn-js/assets/dmn-font/css/dmn-js-decision-table.css">
+    <link rel="stylesheet" href="vendor/dmn-js/assets/dmn-font/css/dmn-js-decision-table-controls.css">
+    <link rel="stylesheet" href="vendor/dmn-js/assets/dmn-font/css/dmn-js-literal-expression.css">
+    <link rel="stylesheet" href="vendor/dmn-js/assets/dmn-font/css/dmn.css">
+
+    <!-- example styles -->
+    <style>
+      html, body, #canvas {
+        height: 100%;
+        padding: 0;
+        margin: 0;
+      }
+
+      #save-button {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="canvas"></div>
+
+    <button id="save-button">print to console</button>
+
+    <!-- modeler distro -->
+    <script src="vendor/dmn-js/assets/dmn-js-modeler-v17.3.0.js"></script>
+
+    <!-- needed for this example only -->
+    <script src="https://unpkg.com/jquery@3.3.1/dist/jquery.js"></script>
+
+    <script>
+
+      var diagramUrl = './xml/dmn/template1.xml';
+
+      // modeler instance
+      var dmnModeler = new DmnModeler({
+        container: '#canvas',
+        keyboard: {
+          bindTo: window
+        }
+      });
+
+      /**
+       * Save diagram contents and print them to the console.
+       */
+      function exportDiagram() {
+
+        dmnModeler.saveXML({ format: true }, function(err, xml) {
+
+          if (err) {
+            return console.error('could not save DMN 1.1 diagram', err);
+          }
+
+          const fileName = 'diagram' + Date.now() + '.xml';
+
+          const blob = new Blob([xml], { type: 'application/xml' });
+          const url = URL.createObjectURL(blob);
+
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = fileName;
+          a.click();
+
+          URL.revokeObjectURL(url);
+        });
+      }
+
+      fetch('./xml/dmn/price.xml')
+        .then(response => response.text())
+        .then(xml => {
+            // import diagram
+            return dmnModeler.importXML(xml).then(() => {
+
+              // fetch currently active view
+              var activeView = dmnModeler.getActiveView();
+
+              // apply initial logic in DRD view
+              if (activeView.type === 'drd') {
+                var activeEditor = dmnModeler.getActiveViewer();
+
+                // access active editor components
+                var canvas = activeEditor.get('canvas');
+
+                // zoom to fit full viewport
+                canvas.zoom('fit-viewport');
+              }
+            });
+        });
+
+      // wire save button
+      $('#save-button').click(exportDiagram);
+    </script>
+  </body>
+</html>

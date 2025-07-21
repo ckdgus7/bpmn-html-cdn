@@ -91,7 +91,7 @@
   const bpmnModeler = new BpmnModeler({ container: '#canvas' });
     const utils = bpmnUtils(bpmnModeler)
     document.getElementById('save-button').addEventListener('click', (e) => {
-      utils.downloadXML(bpmnModeler, 'diagram.bpmn')
+      utils.downloadXML('diagram.bpmn')
     })
   const initialDiagram = `
   <?xml version="1.0" encoding="UTF-8"?>

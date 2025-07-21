@@ -1,0 +1,245 @@
+This XML file does not appear to have any style information associated with it. The document tree is shown below.
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/" xmlns:biodi="http://bpmn.io/schema/dmn/biodi/2.0" id="price" name="요금" namespace="http://camunda.org/schema/1.0/dmn">
+<knowledgeSource id="host_ks" name="Host"/>
+<decision id="dish-decision" name="요금제">
+<informationRequirement id="InformationRequirement_05tgz9d">
+<requiredDecision href="#guestCount"/>
+</informationRequirement>
+<informationRequirement id="InformationRequirement_1r8doop">
+<requiredDecision href="#season"/>
+</informationRequirement>
+<authorityRequirement id="AuthorityRequirement_1sk6rin">
+<requiredAuthority href="#host_ks"/>
+</authorityRequirement>
+<decisionTable id="dishDecisionTable">
+<input id="seasonInput" label="부가서비스" biodi:width="215">
+<inputExpression id="seasonInputExpression" typeRef="string">
+<text/>
+</inputExpression>
+</input>
+<input id="guestCountInput" label="데이터용량">
+<inputExpression id="guestCountInputExpression" typeRef="number">
+<text>temperature</text>
+</inputExpression>
+</input>
+<output id="output1" label="요금제" typeRef="number"/>
+<rule id="row-495762709-1">
+<inputEntry id="UnaryTests_1nxcsjr">
+<text>"넷플릭스 + 유튜브프리미엄"</text>
+</inputEntry>
+<inputEntry id="UnaryTests_1r9yorj">
+<text>&lt;10</text>
+</inputEntry>
+<outputEntry id="LiteralExpression_1mtwzqz">
+<text>59000</text>
+</outputEntry>
+</rule>
+<rule id="row-495762709-2">
+<inputEntry id="UnaryTests_1lxjbif">
+<text>"넷플릭스 + 유튜브프리미엄"</text>
+</inputEntry>
+<inputEntry id="UnaryTests_0nhiedb">
+<text>[10..30]</text>
+</inputEntry>
+<outputEntry id="LiteralExpression_1h30r12">
+<text>69000</text>
+</outputEntry>
+</rule>
+<rule id="row-495762709-3">
+<inputEntry id="UnaryTests_0ifgmfm">
+<text>"넷플릭스 + 유튜브프리미엄"</text>
+</inputEntry>
+<inputEntry id="UnaryTests_12cib9m">
+<text>>30</text>
+</inputEntry>
+<outputEntry id="LiteralExpression_0wgaegy">
+<text>85000</text>
+</outputEntry>
+</rule>
+<rule id="row-495762709-7">
+<inputEntry id="UnaryTests_0ozm9s7">
+<text>"11번가 + 아마존"</text>
+</inputEntry>
+<inputEntry id="UnaryTests_0sesgov">
+<text>&lt;10</text>
+</inputEntry>
+<outputEntry id="LiteralExpression_1dvc5x3">
+<text>43000</text>
+</outputEntry>
+</rule>
+<rule id="row-445981423-3">
+<inputEntry id="UnaryTests_1er0je1">
+<text>"11번가 + 아마존"</text>
+</inputEntry>
+<inputEntry id="UnaryTests_1uzqner">
+<text>[10..30]</text>
+</inputEntry>
+<outputEntry id="LiteralExpression_1pxy4g1">
+<text>49000</text>
+</outputEntry>
+</rule>
+<rule id="row-445981423-4">
+<inputEntry id="UnaryTests_06or48g">
+<text>"11번가 + 아마존"</text>
+</inputEntry>
+<inputEntry id="UnaryTests_0wa71sy">
+<text>>30</text>
+</inputEntry>
+<outputEntry id="LiteralExpression_09ggol9">
+<text>56000</text>
+</outputEntry>
+</rule>
+<rule id="DecisionRule_07h86j9">
+<inputEntry id="UnaryTests_1k12wue">
+<text>"파리바게트 + 세븐일레븐"</text>
+</inputEntry>
+<inputEntry id="UnaryTests_1h68669">
+<text>&lt;10</text>
+</inputEntry>
+<outputEntry id="LiteralExpression_1xecdu2">
+<text>43000</text>
+</outputEntry>
+</rule>
+<rule id="DecisionRule_1ax4jn0">
+<inputEntry id="UnaryTests_0uiwoz5">
+<text>"파리바게트 + 세븐일레븐"</text>
+</inputEntry>
+<inputEntry id="UnaryTests_1iux7ge">
+<text>[10..30]</text>
+</inputEntry>
+<outputEntry id="LiteralExpression_0q7o5t5">
+<text>49000</text>
+</outputEntry>
+</rule>
+<rule id="DecisionRule_0g5w4rz">
+<inputEntry id="UnaryTests_0jb64ad">
+<text>"파리바게트 + 세븐일레븐"</text>
+</inputEntry>
+<inputEntry id="UnaryTests_1dz3vjv">
+<text>>30</text>
+</inputEntry>
+<outputEntry id="LiteralExpression_0r7aqor">
+<text>56000</text>
+</outputEntry>
+</rule>
+</decisionTable>
+</decision>
+<decision id="season" name="데이터 용량">
+<authorityRequirement id="AuthorityRequirement_1gm3i7a">
+<requiredAuthority href="#KnowledgeSource_08d6yn6"/>
+</authorityRequirement>
+<decisionTable id="seasonDecisionTable">
+<input id="temperatureInput" label="용량">
+<inputExpression id="temperatureInputExpression" typeRef="number">
+<text>temperature</text>
+</inputExpression>
+</input>
+<output id="seasonOutput" label="타입" name="low" typeRef="string"/>
+<rule id="row-495762709-5">
+<inputEntry id="UnaryTests_1fd0eqo">
+<text>&lt;10</text>
+</inputEntry>
+<outputEntry id="LiteralExpression_0l98klb">
+<text>"Low"</text>
+</outputEntry>
+</rule>
+<rule id="row-495762709-6">
+<inputEntry id="UnaryTests_1nz6at2">
+<text>[10..30]</text>
+</inputEntry>
+<outputEntry id="LiteralExpression_08moy1k">
+<text>"Middle"</text>
+</outputEntry>
+</rule>
+<rule id="row-445981423-2">
+<inputEntry id="UnaryTests_1a0imxy">
+<text>>30</text>
+</inputEntry>
+<outputEntry id="LiteralExpression_1poftw4">
+<text>"High"</text>
+</outputEntry>
+</rule>
+</decisionTable>
+</decision>
+<decision id="guestCount" name="부가서비스">
+<authorityRequirement id="AuthorityRequirement_0gan7zq">
+<requiredAuthority href="#KnowledgeSource_0rj6yoc"/>
+</authorityRequirement>
+<decisionTable id="guestCountDecisionTable">
+<input id="typeOfDayInput" label="서비스" biodi:width="215">
+<inputExpression id="typeOfDayInputExpression" typeRef="string">
+<text/>
+</inputExpression>
+</input>
+<output id="guestCountOutput" label="할인율" name="퍼센트" typeRef="integer"/>
+<rule id="row-495762709-8">
+<inputEntry id="UnaryTests_0l72u8n">
+<text>"넷플릭스 + 유튜브프리미엄"</text>
+</inputEntry>
+<outputEntry id="LiteralExpression_0wuwqaz">
+<text>10</text>
+</outputEntry>
+</rule>
+<rule id="row-495762709-9">
+<inputEntry id="UnaryTests_03a73o9">
+<text>"11번가 + 아마존"</text>
+</inputEntry>
+<outputEntry id="LiteralExpression_1whn119">
+<text>10</text>
+</outputEntry>
+</rule>
+<rule id="row-495762709-10">
+<inputEntry id="UnaryTests_12tygwt">
+<text>"파리바게트 + 세븐일레븐"</text>
+</inputEntry>
+<outputEntry id="LiteralExpression_1b5k9t8">
+<text>20</text>
+</outputEntry>
+</rule>
+</decisionTable>
+</decision>
+<knowledgeSource id="KnowledgeSource_08d6yn6" name="데이터 용량 선택"/>
+<knowledgeSource id="KnowledgeSource_0rj6yoc" name="부가서비스 선택"/>
+<dmndi:DMNDI>
+<dmndi:DMNDiagram id="DMNDiagram_1ejukud">
+<dmndi:DMNShape id="DMNShape_0w9hu9e" dmnElementRef="host_ks">
+<dc:Bounds height="63" width="100" x="595" y="56"/>
+</dmndi:DMNShape>
+<dmndi:DMNShape id="DMNShape_1f9xq97" dmnElementRef="dish-decision">
+<dc:Bounds height="80" width="180" x="250" y="56"/>
+</dmndi:DMNShape>
+<dmndi:DMNEdge id="DMNEdge_0wk9owu" dmnElementRef="InformationRequirement_05tgz9d">
+<di:waypoint x="395" y="186"/>
+<di:waypoint x="365" y="136"/>
+</dmndi:DMNEdge>
+<dmndi:DMNEdge id="DMNEdge_0glygnk" dmnElementRef="InformationRequirement_1r8doop">
+<di:waypoint x="243" y="186"/>
+<di:waypoint x="297" y="136"/>
+</dmndi:DMNEdge>
+<dmndi:DMNEdge id="DMNEdge_1jf14ck" dmnElementRef="AuthorityRequirement_1sk6rin">
+<di:waypoint x="595" y="89"/>
+<di:waypoint x="430" y="94"/>
+</dmndi:DMNEdge>
+<dmndi:DMNShape id="DMNShape_1dlhv62" dmnElementRef="season">
+<dc:Bounds height="80" width="180" x="110" y="186"/>
+</dmndi:DMNShape>
+<dmndi:DMNShape id="DMNShape_0tndkvg" dmnElementRef="guestCount">
+<dc:Bounds height="80" width="180" x="330" y="186"/>
+</dmndi:DMNShape>
+<dmndi:DMNShape id="DMNShape_0hzisrs" dmnElementRef="KnowledgeSource_08d6yn6">
+<dc:Bounds height="63" width="100" x="150" y="348"/>
+</dmndi:DMNShape>
+<dmndi:DMNEdge id="DMNEdge_0fo196d" dmnElementRef="AuthorityRequirement_1gm3i7a">
+<di:waypoint x="200" y="348"/>
+<di:waypoint x="200" y="266"/>
+</dmndi:DMNEdge>
+<dmndi:DMNShape id="DMNShape_0d80aaf" dmnElementRef="KnowledgeSource_0rj6yoc">
+<dc:Bounds height="63" width="100" x="370" y="349"/>
+</dmndi:DMNShape>
+<dmndi:DMNEdge id="DMNEdge_1gls59h" dmnElementRef="AuthorityRequirement_0gan7zq">
+<di:waypoint x="420" y="349"/>
+<di:waypoint x="420" y="266"/>
+</dmndi:DMNEdge>
+</dmndi:DMNDiagram>
+</dmndi:DMNDI>
+</definitions>

@@ -1,0 +1,41 @@
+
+.dmn-icon-up:before { content: '\e800'; } /* 'î €' */
+.dmn-icon-down:before { content: '\e801'; } /* 'î ' */
+.dmn-icon-clear:before { content: '\e802'; } /* 'î ‚' */
+.dmn-icon-plus:before { content: '\e803'; } /* 'î ƒ' */
+.dmn-icon-minus:before { content: '\e804'; } /* 'î „' */
+.dmn-icon-info:before { content: '\e805'; } /* 'î …' */
+.dmn-icon-left:before { content: '\e806'; } /* 'î †' */
+.dmn-icon-decision:before { content: '\e807'; } /* 'î ‡' */
+.dmn-icon-right:before { content: '\e808'; } /* 'î ˆ' */
+.dmn-icon-input:before { content: '\e809'; } /* 'î ‰' */
+.dmn-icon-output:before { content: '\e80a'; } /* 'î Š' */
+.dmn-icon-copy:before { content: '\e80b'; } /* 'î ‹' */
+.dmn-icon-keyboard:before { content: '\e80c'; } /* 'î Œ' */
+.dmn-icon-undo:before { content: '\e80d'; } /* 'î ' */
+.dmn-icon-redo:before { content: '\e80e'; } /* 'î Ž' */
+.dmn-icon-menu:before { content: '\e80f'; } /* 'î ' */
+.dmn-icon-setting:before { content: '\e810'; } /* 'î ' */
+.dmn-icon-wrench:before { content: '\e811'; } /* 'î ‘' */
+.dmn-icon-eraser:before { content: '\e812'; } /* 'î ’' */
+.dmn-icon-attention:before { content: '\e813'; } /* 'î “' */
+.dmn-icon-resize-big:before { content: '\e814'; } /* 'î ”' */
+.dmn-icon-resize-small:before { content: '\e815'; } /* 'î •' */
+.dmn-icon-file-code:before { content: '\e816'; } /* 'î –' */
+.dmn-icon-business-knowledge:before { content: '\e817'; } /* 'î —' */
+.dmn-icon-knowledge-source:before { content: '\e818'; } /* 'î ˜' */
+.dmn-icon-input-data:before { content: '\e819'; } /* 'î ™' */
+.dmn-icon-text-annotation:before { content: '\e81a'; } /* 'î š' */
+.dmn-icon-connection:before { content: '\e81b'; } /* 'î ›' */
+.dmn-icon-connection-multi:before { content: '\e81c'; } /* 'î œ' */
+.dmn-icon-drag:before { content: '\e81d'; } /* 'î ' */
+.dmn-icon-lasso-tool:before { content: '\e81e'; } /* 'î ž' */
+.dmn-icon-screw-wrench:before { content: '\e81f'; } /* 'î Ÿ' */
+.dmn-icon-trash:before { content: '\e820'; } /* 'î  ' */
+.dmn-icon-bpmn-io:before { content: '\e821'; } /* 'î ¡' */
+.dmn-icon-decision-table:before { content: '\e822'; } /* 'î ¢' */
+.dmn-icon-literal-expression:before { content: '\e823'; } /* 'î £' */
+.dmn-icon-edit:before { content: '\e824'; } /* 'î ¤' */
+.dmn-icon-cut:before { content: '\e825'; } /* 'î ¥' */
+.dmn-icon-hand-tool:before { content: '\e8c1'; } /* 'î£' */
+.dmn-icon-paste:before { content: '\f0ea'; } /* 'ïƒª' */

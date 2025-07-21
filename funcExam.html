@@ -1,627 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>하이라키 검색 조건</title>
-
-    <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-<!-- Optional theme -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+<head>
+  <title>bpmn-js embedding example</title>
 
     <link rel="stylesheet" href="./vendor/bpmn-js/assets/diagram-js.css" />
+    <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-js.css" />
     <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/bpmn-embedded.css" />
     <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/custom.css" />
-
-    <script src="./vendor/bpmn-js/assets/bpmn-modeler-v18.6.2.js"></script>
 <style>
+  figure {
+  margin: 30px 0;
+}
 
-    body { margin: 0; font-family: sans-serif; display: flex; }
+figcaption {
+  margin-top: .85em;
+  text-align: center;
+}
 
-    #canvas {
-      width: 72vw;
-      height: 100vh;
-      border: 1px solid #ccc;
-    }
-    #toolbox {
-      width: 190px;
-      background: #f5f5f5;
-      padding: 10px;
-      border-right: 1px solid #ccc;
-    }
-    #toolbox2 {
-      width: 175px;
-      background: #f5f5f5;
-      padding: 10px;
-      border-right: 1px solid #ccc;
-    }
-    .tool-item {
-      width: 155px;
-      height: 40px;
-      margin: 10px auto;
-      background: white;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: grab;
-    }
-    .flex {
-      display: flex;
-    }
+:focus {
+  outline-color: cornflowerblue;
+}
+
+.container {
+  width: 80%;
+  max-width: 1200px;
+  height: 100%;
+  margin: 0 auto;
+}
+
+.panel {
+  position: absolute; top: 0; left: 0; width: 90vw; height: 98vh; background: white; z-index: 1000;
+  margin-top: 90px;
+  margin-left: 30px;
+  height: 100%;
+}
+.diagram-grid {
+  display: flex;
+  flex-direction: row;
+  height: 500px;
+}
+
+.diagram-grid > * {
+  flex: 1;
+}
+
+.diagram-grid > * + * {
+  margin-left: 2em;
+}
+
+hr {
+  margin: 30px 0;
+}
+
+.hidden {
+  display: none;
+}
 </style>
-  </head>
-  <body class="p-4">
-    <div id="toolbox">
-      <div style="margin-top: 10px;">
-        <h4 style="width: 100%; height: 40px; text-align: center;">Search</h4>
-        <div style="padding-left: 10px;">
-          <label for="level1" class="form-label">L1</label> :
-          <select id="level1" class="form-select">
-            <option value="">-- 선택 --</option>
-          </select>
-        </div>
+    <script src="./vendor/bpmn-js/assets/bpmn-modeler-v18.6.2.js"></script>
+  <script src="./vendor/bpmn-js/assets/bpmn-viewer-v18.6.2.js"></script>
+  <script src="./vendor/bpmn-js/assets/bpmn-navigated-viewer-v18.6.2.js"></script>
+  <script src="./func/index.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>동일 페이지의 viewer, modeler 혼합</h1>
 
-        <div style="padding-left: 10px;">
-          <label for="level2" class="form-label">L2</label> :
-          <select id="level2" class="form-select" disabled>
-            <option value="">-- 선택 --</option>
-          </select>
-        </div>
+    <div><button id="edit-open">Edit Open</button></div>
+    <div class="diagram-grid single">
+      <figure>
+        <div class="canvas" data-diagram="./xml/test1.xml" data-editor="navigated-viewer"></div>
+        <!-- <figcaption>BPMN Navigated Viewer</figcaption> -->
+      </figure>
+    </div>
 
-        <div style="padding-left: 10px;">
-          <label for="level3" class="form-label">L3</label> :
-          <select id="level3" class="form-select" disabled>
-            <option value="">-- 선택 --</option>
-          </select>
-        </div>
 
-        <div style="padding-left: 10px;">
-          <label for="level4" class="form-label">L4</label> :
-          <select id="level4" class="form-select" disabled>
-            <option value="">-- 선택 --</option>
-          </select>
-        </div>
-      </div>
-      <div style="margin-top: 20px;">
-        <h4 style="width: 100%; height: 40px; text-align: center;">Template</h4>
-        <div id="templates1" style="display: none;">
-          <div style="padding-top: 8px; text-align: center;"><img src="./img/template1.png" class="templateImg" width="100" height="100" id="img1" data-id="1" /></div>
-          <div style="padding-top: 8px; text-align: center;"><img src="./img/template2.png" class="templateImg" width="100" height="100" id="img2" data-id="2" /></div>
-          <div style="padding-top: 8px; text-align: center;"><img src="./img/template3.png" class="templateImg" width="100" height="100" id="img3" data-id="3" /></div>
-        </div>
-        <div id="templates2" style="display: none;">
-          <div style="padding-top: 8px; text-align: center;"><img src="./img/template4.png" class="templateImg" width="100" height="100" id="img4" data-id="4" /></div>
-          <div style="padding-top: 8px; text-align: center;"><img src="./img/template5.png" class="templateImg" width="100" height="100" id="img5" data-id="5" /></div>
-          <div style="padding-top: 8px; text-align: center;"><img src="./img/template6.png" class="templateImg" width="100" height="100" id="img6" data-id="6" /></div>
-        </div>
-        <div id="templates3" style="display: none;">
-          <div style="padding-top: 8px; text-align: center;"><img src="./img/template7.png" class="templateImg" width="100" height="100" id="img7" data-id="7" /></div>
-          <div style="padding-top: 8px; text-align: center;"><img src="./img/template8.png" class="templateImg" width="100" height="100" id="img8" data-id="8" /></div>
-          <div style="padding-top: 8px; text-align: center;"><img src="./img/template1.png" class="templateImg" width="100" height="100" id="img9" data-id="9" /></div>
 
-        </div>
-        <div id="templates4" style="display: none;">
-          <div style="padding-top: 8px; text-align: center;"><img src="./img/template6.png" class="templateImg" width="100" height="100" id="img10" data-id="10" /></div>
-          <div style="padding-top: 8px; text-align: center;"><img src="./img/template5.png" class="templateImg" width="100" height="100" id="img11" data-id="11" /></div>
-          <div style="padding-top: 8px; text-align: center;"><img src="./img/template4.png" class="templateImg" width="100" height="100" id="img12" data-id="12" /></div>
-        </div>
+  </div>
+    <div id="layer" class="hidden panel">
+      <div><button id="edit-close">Close Open</button></div>
+      <div class="diagram-grid">
+        <figure>
+          <div id="first-modeler" class="canvas" data-diagram="./xml/test1.xml"></div>
+          <!-- <figcaption>Another BPMN Modeler</figcaption> -->
+        </figure>
       </div>
     </div>
-    <div id="toolbox2">
 
-        <h4 style="width: 100%; height: 40px; text-align: center;">Pallete</h4>
-      <div id="palleteGroup1" style="display: none;">
-
-        <div id="start-event-div" class="tool-item" draggable="true" data-id="start-event" data-name="start-event" data-type="bpmn:StartEvent" title="Start Event">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Start Event</button>
-        </div>
-        <div id="end-event-div" class="tool-item" draggable="true" data-id="end-event" data-name="end-event" data-type="bpmn:EndEvent" title="End Event">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">End Event</button>
-        </div>
-        <div id="task-div" class="tool-item" draggable="true" data-id="task" data-name="task" data-type="bpmn:Task" title="Task">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Task</button>
-        </div>
-        <div id="data-object-reference-div" class="tool-item" draggable="true" data-id="data-object-reference" data-name="data-object-reference" data-type="bpmn:DataObjectReference" title="Data Object Reference">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Data Object Reference</button>
-        </div>
-        <div id="participant-div" class="tool-item" draggable="true" data-id="participant" data-name="participant" data-type="bpmn:Participant" title="Participant">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Participant</button>
-        </div>
-        <div id="intermediate-catch-event-div" class="tool-item" draggable="true" data-id="intermediate-catch-event" data-name="intermediate-catch-event" data-type="bpmn:IntermediateCatchEvent" title="Intermediate Catch Event">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Intermediate Catch Event</button>
-        </div>
-        <div id="exclusive-gateway-div" class="tool-item" draggable="true" data-id="exclusive-gateway" data-name="exclusive-gateway" data-type="bpmn:ExclusiveGateway" title="Exclusive Gateway">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Exclusive Gateway</button>
-        </div>
-        <div id="sub-process-div" class="tool-item" draggable="true" data-id="sub-process" data-name="sub-process" data-type="bpmn:SubProcess" title="Sub Process">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Sub Process</button>
-        </div>
-        <div id="data-store-reference-div" class="tool-item" draggable="true" data-id="data-store-reference" data-name="data-store-reference" data-type="bpmn:DataStoreReference" title="Data Store Reference">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Data Store Reference</button>
-        </div>
-        <div id="group-div" class="tool-item" draggable="true" data-id="group" data-name="group" data-type="bpmn:Group" title="Group">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Group</button>
-        </div>
-      </div>
-      <div id="palleteGroup2" style="display: none;">
-
-        <div id="start-event-div" class="tool-item" draggable="true" data-id="start-event" data-name="start-event" data-type="bpmn:StartEvent" title="Start Event">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Start Event</button>
-        </div>
-        <div id="end-event-div" class="tool-item" draggable="true" data-id="end-event" data-name="end-event" data-type="bpmn:EndEvent" title="End Event">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">End Event</button>
-        </div>
-        <div id="task-div" class="tool-item" draggable="true" data-id="task" data-name="task" data-type="bpmn:Task" title="Task">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Task</button>
-        </div>
-        <!-- <div id="data-object-reference-div" class="tool-item" draggable="true" data-id="data-object-reference" data-name="data-object-reference" data-type="bpmn:DataObjectReference" title="Data Object Reference">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Data Object Reference</button>
-        </div> -->
-        <div id="exclusive-gateway-div" class="tool-item" draggable="true" data-id="exclusive-gateway" data-name="exclusive-gateway" data-type="bpmn:ExclusiveGateway" title="Exclusive Gateway">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Exclusive Gateway</button>
-        </div>
-        <div id="data-store-reference-div" class="tool-item" draggable="true" data-id="inclusive-gateway" data-name="inclusive-gateway" data-type="bpmn:InclusiveGateway" title="InclusiveGateway">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Inclusive Gateway</button>
-        </div>
-        <div id="participant-div" class="tool-item" draggable="true" data-id="user-task" data-name="user-task" data-type="bpmn:UserTask" title="User Task">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">User Task</button>
-        </div>
-        <div id="intermediate-catch-event-div" class="tool-item" draggable="true" data-id="script-task" data-name="script-task" data-type="bpmn:ScriptTask" title="ScriptTask">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Script Task</button>
-        </div>
-        <div id="sub-process-div" class="tool-item" draggable="true" data-id="service-task" data-name="service-task" data-type="bpmn:ServiceTask" title="Service Task">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Service Task</button>
-        </div>
-        <!-- <div id="group-div" class="tool-item" draggable="true" data-id="call-activity" data-name="call-activity" data-type="bpmn:CallActivity" title="Call Activity">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Call Activity</button>
-        </div> -->
-      </div>
-      <div id="palleteGroup3" style="display: none;">
-
-        <div id="start-event-div" class="tool-item" draggable="true" data-id="start-event" data-name="start-event" data-type="bpmn:StartEvent" title="Start Event">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Start Event</button>
-        </div>
-        <div id="end-event-div" class="tool-item" draggable="true" data-id="end-event" data-name="end-event" data-type="bpmn:EndEvent" title="End Event">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">End Event</button>
-        </div>
-        <div id="task-div" class="tool-item" draggable="true" data-id="task" data-name="task" data-type="bpmn:Task" title="Task">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Task</button>
-        </div>
-        <div id="intermediate-catch-event-div" class="tool-item" draggable="true" data-id="script-task" data-name="script-task" data-type="bpmn:ScriptTask" title="ScriptTask">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Script Task</button>
-        </div>
-        <div id="sub-process-div" class="tool-item" draggable="true" data-id="service-task" data-name="service-task" data-type="bpmn:ServiceTask" title="Service Task">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Service Task</button>
-        </div>
-        <div id="intermediate-catch-event-div" class="tool-item" draggable="true" data-id="intermediate-catch-event" data-name="intermediate-catch-event" data-type="bpmn:IntermediateCatchEvent" title="Intermediate Catch Event">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Intermediate Catch Event</button>
-        </div>
-        <div id="exclusive-gateway-div" class="tool-item" draggable="true" data-id="exclusive-gateway" data-name="exclusive-gateway" data-type="bpmn:ExclusiveGateway" title="Exclusive Gateway">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Exclusive Gateway</button>
-        </div>
-        <!-- <div id="data-store-reference-div" class="tool-item" draggable="true" data-id="inclusive-gateway" data-name="inclusive-gateway" data-type="bpmn:InclusiveGateway" title="InclusiveGateway">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Inclusive Gateway</button>
-        </div>
-        <div id="sub-process-div" class="tool-item" draggable="true" data-id="sub-process" data-name="sub-process" data-type="bpmn:SubProcess" title="Sub Process">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Sub Process</button>
-        </div> -->
-        <div id="data-store-reference-div" class="tool-item" draggable="true" data-id="data-store-reference" data-name="data-store-reference" data-type="bpmn:DataStoreReference" title="Data Store Reference">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Data Store Reference</button>
-        </div>
-        <div id="group-div" class="tool-item" draggable="true" data-id="call-activity" data-name="call-activity" data-type="bpmn:CallActivity" title="Call Activity">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Call Activity</button>
-        </div>
-      </div>
-      <div id="palleteGroup4" style="display: none;">
-
-        <div id="start-event-div" class="tool-item" draggable="true" data-id="start-event" data-name="start-event" data-type="bpmn:StartEvent" title="Start Event">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Start Event</button>
-        </div>
-        <div id="end-event-div" class="tool-item" draggable="true" data-id="end-event" data-name="end-event" data-type="bpmn:EndEvent" title="End Event">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">End Event</button>
-        </div>
-        <div id="task-div" class="tool-item" draggable="true" data-id="task" data-name="task" data-type="bpmn:Task" title="Task">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Task</button>
-        </div>
-        <div id="data-object-reference-div" class="tool-item" draggable="true" data-id="data-object-reference" data-name="data-object-reference" data-type="bpmn:DataObjectReference" title="Data Object Reference">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Data Object Reference</button>
-        </div>
-        <div id="participant-div" class="tool-item" draggable="true" data-id="participant" data-name="participant" data-type="bpmn:Participant" title="Participant">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Participant</button>
-        </div>
-        <div id="intermediate-catch-event-div" class="tool-item" draggable="true" data-id="intermediate-catch-event" data-name="intermediate-catch-event" data-type="bpmn:IntermediateCatchEvent" title="Intermediate Catch Event">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Intermediate Catch Event</button>
-        </div>
-        <div id="exclusive-gateway-div" class="tool-item" draggable="true" data-id="exclusive-gateway" data-name="exclusive-gateway" data-type="bpmn:ExclusiveGateway" title="Exclusive Gateway">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Exclusive Gateway</button>
-        </div>
-        <div id="sub-process-div" class="tool-item" draggable="true" data-id="sub-process" data-name="sub-process" data-type="bpmn:SubProcess" title="Sub Process">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Sub Process</button>
-        </div>
-        <div id="data-store-reference-div" class="tool-item" draggable="true" data-id="data-store-reference" data-name="data-store-reference" data-type="bpmn:DataStoreReference" title="Data Store Reference">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Data Store Reference</button>
-        </div>
-        <div id="group-div" class="tool-item" draggable="true" data-id="group" data-name="group" data-type="bpmn:Group" title="Group">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Group</button>
-        </div>
-      </div>
-    </div>
-    <div>
-      <div id="canvas"></div>
-    </div>
   <script>
-    (async function() {
-
-    // Custom Palette Provider
-    class CustomPaletteProvider {
-      constructor(palette, create, elementFactory, translate, globalConnect, handTool, lassoTool, spaceTool) {
-        this.create = create;
-        this.elementFactory = elementFactory;
-        this.translate = translate;
-        this.globalConnect = globalConnect;
-        this.handTool = handTool;
-        this.lassoTool = lassoTool;
-        this.spaceTool = spaceTool;
-
-        palette.registerProvider(this);
-      }
-
-      getPaletteEntries() {
-        const { create, elementFactory, translate, globalConnect, handTool, lassoTool, spaceTool } = this;
-        let returnVal = {
-          // 🔧 Activate group: 기본 도구들
-          'hand-tool': {
-            group: 'tools',
-            className: 'bpmn-icon-hand-tool',
-            title: translate('Activate the hand tool'),
-            action: {
-              click: function (event) {
-                handTool.activateHand(event);
-              }
-            }
-          },
-          'lasso-tool': {
-            group: 'tools',
-            className: 'bpmn-icon-lasso-tool',
-            title: translate('Activate the lasso tool'),
-            action: {
-              click: function (event) {
-                lassoTool.activateSelection(event);
-              }
-            }
-          },
-          'space-tool': {
-            group: 'tools',
-            className: 'bpmn-icon-space-tool',
-            title: translate('Activate the space tool'),
-            action: {
-              click: function (event) {
-                spaceTool.activateSelection(event);
-              }
-            }
-          },
-          'global-connect-tool': {
-            group: 'tools',
-            className: 'bpmn-icon-connection-multi',
-            title: translate('Activate the global connect tool'),
-            action: {
-              click: function (event) {
-                globalConnect.start(event);
-              }
-            }
-          },
-        }
-
-        return returnVal;
-      }
-    }
 
 
-    class CustomContextPadProvider {
-      constructor(config, contextPad, create, elementFactory, connect, translate, modeling, popupMenu) {
-        this.create = create;
-        this.contextPad = contextPad;
-        this.create = create;
-        this.elementFactory = elementFactory;
-        this.connect = connect;
-        this.translate = translate;
-        this.modeling = modeling;
-        this.popupMenu = popupMenu;
+const editorMap = {
+  'editor': BpmnModeler,
+  'viewer': BpmnViewer,
+  'navigated-viewer': BpmnNavigatedViewer
+};
 
-        contextPad.registerProvider(this);
-      }
+const modelers = new Map();
 
-      getContextPadEntries() {
-        const { config, contextPad, create, elementFactory, connect, translate, modeling, popupMenu } = this;
-        let returnVal = {
-          // 🔧 Activate group: 기본 도구들
-          'connect': {
-            group: 'tools',
-            className: 'bpmn-icon-connection-multi',
-            title: translate('Connect using sequence flow'),
-            action: {
-              click: function(event, element) {
-                connect.start(event, element);
-              }
-            }
-          },
-          'delete': {
-            group: 'tools',
-            className: 'bpmn-icon-trash',
-            title: translate('Remove'),
-            action: {
-              click: function(event, element) {
-                modeling.removeElements([element]);
-              }
-            }
-          },
-        }
+function createModeler(viewerType, config, id) {
+  const BpmnJS = editorMap[viewerType] || BpmnModeler;
+  return new BpmnJS({
+    ...config,
+  });
+}
 
-        return returnVal;
-      }
-    }
-    const CustomModule = {
-      // __init__: ['customPaletteProvider', 'customContextPadProvider'],
-      __init__: ['customPaletteProvider'],
-      paletteProvider: ['value', null], // <-- 기본 palette 제거!
-      contextPadProvider: ['value', null], // <-- 기본 ContextPad 제거!
-      customPaletteProvider: [
-        'type',
-        function(palette, create, elementFactory, translate, globalConnect, handTool, lassoTool, spaceTool) {
-          return new CustomPaletteProvider(palette, create, elementFactory, translate, globalConnect, handTool, lassoTool, spaceTool);
-        }
-      ],
-      // customContextPadProvider: [
-      //   'type',
-      //   function(config, contextPad, create, elementFactory, connect, translate, modeling, popupMenu) {
-      //     return new CustomContextPadProvider(config, contextPad, create, elementFactory, connect, translate, modeling, popupMenu);
-      //   }
-      // ]
-    };
-    const bpmnModeler = new BpmnModeler({
-      container: '#canvas',
-      additionalModules: [ CustomModule ],
-    });
-    document.querySelectorAll('.templateImg').forEach(item => {
-      item.addEventListener('click', async (event) => {
-        event.preventDefault();
-        const id = event.target.dataset.id;
-        const templateFile = `./xml/template${id}.xml`;
-        console.log(templateFile);
-        const rep = await fetch(templateFile).then(response => response.text());
-        await bpmnModeler.importXML(rep);
-        // const canvas = bpmnModeler.get('canvas');
-        // canvas.zoom('fit-viewport');
-      });
-    });
+async function openDiagram(element) {
 
-    const eventBus = bpmnModeler.get('eventBus');
+  const diagramURL = element.dataset.diagram;
+  const viewerType = element.dataset.editor;
+  const id = element.id || '__default';
 
-    fetch('./xml/blank.xml')
-      .then(response => response.text())
-      .then(xml => {
-        return bpmnModeler.importXML(xml).then(() => {
+  const modeler = createModeler(viewerType, { container: element }, id);
 
-          document.querySelectorAll('.tool-item').forEach(item => {
-            item.addEventListener('dragstart', (e) => {
-              const type = e.target.dataset.type;
-              const role = e.target.dataset.role;
-              const id = e.target.dataset.id;
-              const name = e.target.dataset.name;
-              const label = e.target.dataset.label;
+  modelers.set(element, modeler);
 
-              e.dataTransfer.setData('type', type);
-              e.dataTransfer.setData('role', role);
-              e.dataTransfer.setData('id', id);
-              e.dataTransfer.setData('name', name);
-              e.dataTransfer.setData('label', label);
-            });
-          });
+  const diagramXML = await fetch(diagramURL).then(response => response.text());
 
-          const canvasContainer = document.getElementById('canvas');
+  await modeler.importXML(diagramXML);
+}
 
-          canvasContainer.addEventListener('dragover', (e) => {
-            e.preventDefault();
-          });
+const elements = document.querySelectorAll('[data-diagram]');
 
-          canvasContainer.addEventListener('drop', async (e) => {
-            e.preventDefault();
+for (const element of elements) {
+  openDiagram(element).catch(err => console.error);
+}
+document.getElementById('edit-open').addEventListener('click', () => {
+  document.getElementById('layer').classList.remove('hidden');
+});
+document.getElementById('edit-close').addEventListener('click', () => {
+  document.getElementById('layer').classList.add('hidden');
+});
 
-            const type = e.dataTransfer.getData('type');
-            const role = e.dataTransfer.getData('role');
-            const id = e.dataTransfer.getData('id') + new Date();
-            const name = e.dataTransfer.getData('name');
-            const label = e.dataTransfer.getData('label');
-
-            if (!type) return;
-
-            const canvas = bpmnModeler.get('canvas');
-            const modeling = bpmnModeler.get('modeling');
-            const moddle = bpmnModeler.get('moddle');
-            const elementFactory = bpmnModeler.get('elementFactory');
-            const selection = bpmnModeler.get('selection');
-
-            const rect = canvasContainer.getBoundingClientRect();
-            const position = {
-              x: e.clientX - rect.left,
-              y: e.clientY - rect.top
-            };
-
-            // 4. businessObject 구성
-            const businessObject = moddle.create(type, {
-              id,
-              name,
-            });
-
-            const shape = elementFactory.createShape({
-              type,
-              businessObject
-            });
-            shape.businessObject.role = role;
-
-            modeling.createShape(shape, position, canvas.getRootElement());
-            // document.getElementById(role + '-div').style.display = 'none';
-
-          });
-
-
-
-          // console.log(eventBus)
-          // bpmnModeler.get('eventBus').on('commandStack.shape.delete.postExecute', (event) => {
-          //   const role = event.context.shape.businessObject.role;
-          //   // alert(2)
-          //   document.getElementById(role + '-div').style.display = '';
-          // })
-          //삭제 후 다시 svg (guest-div)가 block되도록 업데이트
-        });
-      })
-      .catch(err => {
-        console.error('Error importing BPMN diagram:', err);
-      });
-
-
-  })();
-    const data = {
-      "테스트A": {
-        "테스트A-1": {
-          "테스트A-1-1": ["테스트A-1-1-1"],
-          "테스트A-1-2": ["테스트A-1-2-1"]
-        },
-      },
-      "테스트B": {
-        "테스트B-1": {
-          "테스트B-1-1": ["테스트B-1-1-1"],
-          "테스트B-1-2": ["테스트B-1-2-1"]
-        },
-      }
-    };
-
-    const level1 = document.getElementById("level1");
-    const level2 = document.getElementById("level2");
-    const level3 = document.getElementById("level3");
-    const level4 = document.getElementById("level4");
-
-    function populateSelect(select, options, placeholder = "-- 선택 --") {
-      select.innerHTML = `<option value="">${placeholder}</option>`;
-      options.forEach(opt => {
-        const option = document.createElement("option");
-        option.value = opt;
-        option.textContent = opt;
-        select.appendChild(option);
-      });
-      select.disabled = options.length === 0;
-    }
-
-    function resetAndDisable(...selects) {
-      selects.forEach(s => {
-        s.innerHTML = `<option value="">-- 선택 --</option>`;
-        s.disabled = true;
-      });
-    }
-
-    // 초기 Level1 로드
-    populateSelect(level1, Object.keys(data));
-
-    level1.addEventListener("change", () => {
-      const selected = level1.value;
-      if (!selected || !data[selected]) {
-        resetAndDisable(level2, level3, level4);
-        return;
-      }
-
-      populateSelect(level2, Object.keys(data[selected]));
-      resetAndDisable(level3, level4);
-    });
-
-    level2.addEventListener("change", () => {
-      const l1 = level1.value;
-      const l2 = level2.value;
-      if (!l2 || !data[l1][l2]) {
-        resetAndDisable(level3, level4);
-        return;
-      }
-
-      populateSelect(level3, Object.keys(data[l1][l2]));
-      resetAndDisable(level4);
-    });
-
-    level3.addEventListener("change", () => {
-      const l1 = level1.value;
-      const l2 = level2.value;
-      const l3 = level3.value;
-      if (!l3 || !data[l1][l2][l3]) {
-        resetAndDisable(level4);
-        return;
-      }
-
-      populateSelect(level4, data[l1][l2][l3]);
-    });
-
-    const templatesWrap1 = document.getElementById("templates1");
-    const templatesWrap2 = document.getElementById("templates2");
-    const templatesWrap3 = document.getElementById("templates3");
-    const templatesWrap4 = document.getElementById("templates4");
-    const palleteGroup1 = document.getElementById("palleteGroup1");
-    const palleteGroup2 = document.getElementById("palleteGroup2");
-    const palleteGroup3 = document.getElementById("palleteGroup3");
-    const palleteGroup4 = document.getElementById("palleteGroup4");
-    level4.addEventListener("change", (e) => {
-      const selected = e.target.value;
-      console.log("Level 4 selected:", selected);
-      switch (selected) {
-        case "테스트A-1-1-1":
-          templatesWrap1.style.display = 'block';
-          templatesWrap2.style.display = 'none';
-          templatesWrap3.style.display = 'none';
-          templatesWrap4.style.display = 'none';
-          palleteGroup1.style.display = 'block';
-          palleteGroup2.style.display = 'none';
-          palleteGroup3.style.display = 'none';
-          palleteGroup4.style.display = 'none';
-          break;
-        case "테스트A-1-2-1":
-          templatesWrap1.style.display = 'none';
-          templatesWrap2.style.display = 'block';
-          templatesWrap3.style.display = 'none';
-          templatesWrap4.style.display = 'none';
-          palleteGroup1.style.display = 'none';
-          palleteGroup2.style.display = 'block';
-          palleteGroup3.style.display = 'none';
-          palleteGroup4.style.display = 'none';
-          break;
-        case "테스트B-1-1-1":
-          templatesWrap1.style.display = 'none';
-          templatesWrap2.style.display = 'none';
-          templatesWrap3.style.display = 'block';
-          templatesWrap4.style.display = 'none';
-          palleteGroup1.style.display = 'none';
-          palleteGroup2.style.display = 'none';
-          palleteGroup3.style.display = 'block';
-          palleteGroup4.style.display = 'none';
-          break;
-        case "테스트B-1-2-1":
-          templatesWrap1.style.display = 'none';
-          templatesWrap2.style.display = 'none';
-          templatesWrap3.style.display = 'none';
-          templatesWrap4.style.display = 'block';
-          palleteGroup1.style.display = 'none';
-          palleteGroup2.style.display = 'none';
-          palleteGroup3.style.display = 'none';
-          palleteGroup4.style.display = 'block';
-          break;
-        default:
-          console.log("No action for this selection");
-      }
-    });
   </script>
-      <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-<!-- Latest compiled and minified JavaScript -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-  </body>
 </html>

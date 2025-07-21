@@ -123,29 +123,23 @@
         <div id="end-event-div" class="tool-item" draggable="true" data-id="end-event" data-name="end-event" data-type="bpmn:EndEvent" title="End Event">
           <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">End Event</button>
         </div>
-        <div id="task-div" class="tool-item" draggable="true" data-id="task" data-name="task" data-type="bpmn:Task" title="Task">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Task</button>
+        <div id="logo-div" class="tool-item" draggable="true" data-id="struct" data-name="기획" data-type="bpmn:Task" title="기획">
+          <button class="btn btn-main" style="width: 100%; height: 100%; font-size: 11px;">기획</button>
         </div>
-        <div id="data-object-reference-div" class="tool-item" draggable="true" data-id="data-object-reference" data-name="data-object-reference" data-type="bpmn:DataObjectReference" title="Data Object Reference">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Data Object Reference</button>
+        <div id="logo-div" class="tool-item" draggable="true" data-id="design" data-name="디자인" data-type="bpmn:Task" title="디자인">
+          <button class="btn btn-main" style="width: 100%; height: 100%; font-size: 11px;">디자인</button>
         </div>
-        <div id="participant-div" class="tool-item" draggable="true" data-id="participant" data-name="participant" data-type="bpmn:Participant" title="Participant">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Participant</button>
+        <div id="logo-div" class="tool-item" draggable="true" data-id="publishing" data-name="퍼블리싱" data-type="bpmn:Task" title="퍼블리싱">
+          <button class="btn btn-main" style="width: 100%; height: 100%; font-size: 11px;">퍼블리싱</button>
         </div>
-        <div id="intermediate-catch-event-div" class="tool-item" draggable="true" data-id="intermediate-catch-event" data-name="intermediate-catch-event" data-type="bpmn:IntermediateCatchEvent" title="Intermediate Catch Event">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Intermediate Catch Event</button>
+        <div id="logo-div" class="tool-item" draggable="true" data-id="dev" data-name="개발" data-type="bpmn:Task" title="개발">
+          <button class="btn btn-main" style="width: 100%; height: 100%; font-size: 11px;">개발</button>
         </div>
-        <div id="exclusive-gateway-div" class="tool-item" draggable="true" data-id="exclusive-gateway" data-name="exclusive-gateway" data-type="bpmn:ExclusiveGateway" title="Exclusive Gateway">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Exclusive Gateway</button>
+        <div id="logo-div" class="tool-item" draggable="true" data-id="db" data-name="데이터베이스" data-type="bpmn:Task" title="데이터베이스">
+          <button class="btn btn-main" style="width: 100%; height: 100%; font-size: 11px;">데이터베이스</button>
         </div>
-        <div id="sub-process-div" class="tool-item" draggable="true" data-id="sub-process" data-name="sub-process" data-type="bpmn:SubProcess" title="Sub Process">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Sub Process</button>
-        </div>
-        <div id="data-store-reference-div" class="tool-item" draggable="true" data-id="data-store-reference" data-name="data-store-reference" data-type="bpmn:DataStoreReference" title="Data Store Reference">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Data Store Reference</button>
-        </div>
-        <div id="group-div" class="tool-item" draggable="true" data-id="group" data-name="group" data-type="bpmn:Group" title="Group">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Group</button>
+        <div id="plus-div" class="tool-item" draggable="true" data-id="plus" data-name="+" data-type="bpmn:Task" title="플러스">
+          <button class="btn btn-main" style="width: 100%; height: 100%; font-size: 11px;">(+) 이미지</button>
         </div>
       </div>
       <div id="palleteGroup2" style="display: none;">
@@ -257,6 +251,74 @@
   <script>
     (async function() {
 
+    // Custom Renderer
+    class CustomImageRenderer {
+      constructor(eventBus, textRenderer, styles) {
+        this.eventBus = eventBus;
+        this.textRenderer = textRenderer;
+        this.styles = styles;
+
+        eventBus.on('render.shape', 2000, (event) => {
+          const { element, gfx } = event;
+          const inArr = ['기획', '디자인', '퍼블리싱', '개발', '데이터베이스', '+'];
+          console.log(element)
+          if (element.type === 'bpmn:Task' && inArr.includes(element.businessObject.name)) {
+
+            /* 라벨 위치 변경 */
+            while (gfx.firstChild) gfx.removeChild(gfx.firstChild); // 기본 라벨 제거
+
+            const text = element.businessObject.name || '';
+            console.log('text', text)
+            if (!text) return;
+
+            const textEl = textRenderer.createText(text, {
+              box: { width: element.width, height: 30 },
+              align: 'center',
+              padding: 0
+            });
+            const yOffset = 10;
+            textEl.setAttribute('transform', `translate(0, ${element.height + yOffset})`); // SVG <text> 위치 조정 (도형 아래로)
+            gfx.appendChild(textEl);
+
+            /* 이미지 그리기 */
+            this.drawImage(element, gfx);
+
+            return true; // 기본 렌더링 방지
+          }
+        });
+      }
+
+      drawImage(element, gfx) {
+        let imageUrl;
+        if (element.businessObject.name === '기획') {
+          imageUrl = './img/struct.png'; // 예시 이미지
+        } else if (element.businessObject.name === '디자인') {
+          imageUrl = './img/design.svg'; // 예시 이미지
+        } else if (element.businessObject.name === '퍼블리싱') {
+          imageUrl = './img/html5.png'; // 예시 이미지
+        } else if (element.businessObject.name === '개발') {
+          imageUrl = './img/dev.png'; // 예시 이미지
+        } else if (element.businessObject.name === '데이터베이스') {
+          imageUrl = './img/db.png'; // 예시 이미지
+        } else if (element.businessObject.name === '+') {
+          imageUrl = 'https://cdn-icons-png.flaticon.com/512/1828/1828817.png'; // 예시 이미지
+        }
+
+        const width = element.width;
+        const height = element.height;
+
+        const image = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+        image.setAttributeNS(null, 'href', imageUrl);
+        image.setAttributeNS(null, 'width', width);
+        image.setAttributeNS(null, 'height', height);
+        image.setAttributeNS(null, 'x', 0);
+        image.setAttributeNS(null, 'y', 0);
+
+        gfx.appendChild(image);
+      }
+    }
+
+    CustomImageRenderer.$inject = ['eventBus', 'styles'];
     // Custom Palette Provider
     class CustomPaletteProvider {
       constructor(palette, create, elementFactory, translate, globalConnect, handTool, lassoTool, spaceTool) {
@@ -365,9 +427,10 @@
         return returnVal;
       }
     }
+
     const CustomModule = {
-      // __init__: ['customPaletteProvider', 'customContextPadProvider'],
-      __init__: ['customPaletteProvider'],
+      // __init__: ['customPaletteProvider', 'customImageRenderer', 'customContextPadProvider'],
+      __init__: ['customPaletteProvider', 'customImageRenderer'],
       paletteProvider: ['value', null], // <-- 기본 palette 제거!
       contextPadProvider: ['value', null], // <-- 기본 ContextPad 제거!
       customPaletteProvider: [
@@ -376,6 +439,12 @@
           return new CustomPaletteProvider(palette, create, elementFactory, translate, globalConnect, handTool, lassoTool, spaceTool);
         }
       ],
+      customImageRenderer: [
+        'type',
+        function(eventBus, textRenderer, styles) {
+          return new CustomImageRenderer(eventBus, textRenderer, styles);
+        }
+      ]
       // customContextPadProvider: [
       //   'type',
       //   function(config, contextPad, create, elementFactory, connect, translate, modeling, popupMenu) {
@@ -434,7 +503,7 @@
 
             const type = e.dataTransfer.getData('type');
             const role = e.dataTransfer.getData('role');
-            const id = e.dataTransfer.getData('id') + new Date();
+            const id = e.dataTransfer.getData('id') + new Date().getTime();
             const name = e.dataTransfer.getData('name');
             const label = e.dataTransfer.getData('label');
 

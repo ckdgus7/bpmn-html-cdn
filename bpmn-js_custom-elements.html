@@ -374,7 +374,7 @@
 
     const utils = bpmnUtils(bpmnModeler)
     document.getElementById('save-button').addEventListener('click', (e) => {
-      utils.downloadXML(bpmnModeler, 'diagram.bpmn')
+      utils.downloadXML('diagram.bpmn')
     })
 
     fetch('./xml/test3.xml')
