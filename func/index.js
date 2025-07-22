@@ -4,7 +4,7 @@ function bpmnUtils(bpmnModeler) {
   const modeling = bpmnModeler.get('modeling');
   const autoPlace = bpmnModeler.get('autoPlace');
   const moddle = bpmnModeler.get('moddle');
-  // const selection = bpmnModeler.get('selection');
+  const selection = bpmnModeler.get('selection');
 
   return {
 
@@ -167,4 +167,36 @@ function bpmnUtils(bpmnModeler) {
       });
     },
   };
+}
+
+
+// .cavas selector를 이용한 dataset으로 멀티 diagram 생성
+function createDiagrams(params) {
+  function createModeler(viewerType, config) {
+    const BpmnJS = params.bpmnjsMap[viewerType] || BpmnModeler;
+    if (!BpmnJS || !config) return null;
+    return new BpmnJS({
+      ...config,
+    });
+  }
+
+  async function openDiagram(modeler, element) {
+    const diagramURL = element.dataset.diagram;
+    if (modeler && (params.xml || diagramURL)) {
+      const diagramXML = params.xml ? params.xml : await fetch(diagramURL).then(response => response.text());
+      await modeler.importXML(diagramXML);
+    }
+  }
+
+  function initDiagram() {
+    for (const element of params.elements) {
+      const viewerType = element.dataset.editor;
+      const id = element.id || '__default';
+      const additionalModules = params.additionalModulesMap ? params.additionalModulesMap[id] : [];
+      const moddleExtensions = params.additionalModulesMap ? params.moddleExtensionsMap[id] : [];
+      const modeler = createModeler(viewerType, { container: element, additionalModules, moddleExtensions });
+      openDiagram(modeler, element);
+    }
+  }
+  initDiagram();
 }
