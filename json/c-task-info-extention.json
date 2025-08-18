@@ -1,5 +1,5 @@
 {
-  "name": "QualityAssurance",
+  "name": "QA",
   "uri": "http://some-company/schema/bpmn/qa",
   "prefix": "qa",
   "xml": {
@@ -8,17 +8,17 @@
   "types": [
     {
       "name": "AnalyzedNode",
-      "extends": ["bpmn:FlowNode"],
+      "extends": ["bpmn:Task"],
       "properties": [
         {
           "name": "suitable",
           "isAttr": true,
-          "type": "Integer"
+          "type": "String"
         }
       ]
     },
     {
-      "name": "AnalysisDetails",
+      "name": "CommentDetails",
       "superClass": ["Element"],
       "properties": [
         {
@@ -27,33 +27,32 @@
           "type": "String"
         },
         {
-          "name": "nextCheck",
-          "isAttr": true,
-          "type": "String"
-        },
-        {
           "name": "comments",
-          "isMany": true,
-          "type": "Comment"
+          "type": "qa:Comment",
+          "isMany": true
         }
       ]
     },
     {
       "name": "Comment",
+      "superClass": ["Element"],
       "properties": [
         {
-          "name": "author",
+          "name": "pageName",
           "isAttr": true,
           "type": "String"
         },
         {
-          "name": "text",
-          "isBody": true,
+          "name": "etc1",
+          "isAttr": true,
           "type": "String"
+        },
+        {
+          "name": "body",
+          "type": "String",
+          "isBody": true
         }
       ]
     }
-  ],
-  "emumerations": [],
-  "associations": []
+  ]
 }

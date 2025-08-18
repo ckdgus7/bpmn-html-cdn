@@ -7,7 +7,6 @@ function bpmnUtils(bpmnModeler) {
   const selection = bpmnModeler.get('selection');
 
   return {
-
     getBusinessObject(element) {
       return element.businessObject || element;
     },
@@ -17,7 +16,7 @@ function bpmnUtils(bpmnModeler) {
         return null;
       }
 
-      return businessObject.extensionElements.values.filter((extensionElement) => {
+      return businessObject.extensionElements.values.filter(extensionElement => {
         return extensionElement.$instanceOf(type);
       })[0];
     },
@@ -25,8 +24,8 @@ function bpmnUtils(bpmnModeler) {
     reRenderModeler(options) {
       // 기존 인스턴스가 있다면 제거
       // if (bpmnModeler) {
-        bpmnModeler.destroy();
-        bpmnModeler = null;
+      bpmnModeler.destroy();
+      bpmnModeler = null;
       // }
 
       bpmnModeler = new BpmnModeler(options);
@@ -34,10 +33,15 @@ function bpmnUtils(bpmnModeler) {
     },
 
     // diagram loading (reloading도 가능)
-    async loadDiagram(xml) {
-      await bpmnModeler.importXML(xml);
+    async loadDiagram(path) {
+      await fetch(path)
+        .then(response => response.text())
+        .then(xml => {
+          // const xml = data.xml || data;
+          // return this.importXML(xml);
+          bpmnModeler.importXML(xml);
+        });
     },
-
     // diagram을 xml로 파싱 (api 전송 시 등 xml화된 내용이 필요할 경우 사용)
     async saveDiagram() {
       const { xml } = await bpmnModeler.saveXML({ format: true });
@@ -45,7 +49,7 @@ function bpmnUtils(bpmnModeler) {
     },
 
     // xml load 후 cavas 내 viewbox 위치 및 사이즈 지정
-    setCanvas(settings={}) {
+    setCanvas(settings = {}) {
       requestAnimationFrame(() => {
         const canvas = bpmnModeler.get('canvas');
         // 현재 뷰박스 얻기
@@ -57,26 +61,29 @@ function bpmnUtils(bpmnModeler) {
           y: 0,
           width: viewbox.width,
           height: viewbox.height,
-          ...settings
+          ...settings,
         });
       });
     },
 
     // diagram을 xml로 다운로드
     downloadXML(fileName) {
-      bpmnModeler.saveXML({ format: true }).then(({ xml }) => {
-        const blob = new Blob([xml], { type: 'application/xml' });
-        const url = URL.createObjectURL(blob);
+      bpmnModeler
+        .saveXML({ format: true })
+        .then(({ xml }) => {
+          const blob = new Blob([xml], { type: 'application/xml' });
+          const url = URL.createObjectURL(blob);
 
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        a.click();
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = fileName;
+          a.click();
 
-        URL.revokeObjectURL(url);
-      }).catch(err => {
-        console.error('❌ XML 저장 실패:', err);
-      });
+          URL.revokeObjectURL(url);
+        })
+        .catch(err => {
+          console.error('❌ XML 저장 실패:', err);
+        });
     },
 
     // element를 추가 (ex - type=bpmn:Task, props={ name: 'Task_1'})
@@ -109,12 +116,14 @@ function bpmnUtils(bpmnModeler) {
 
     // 객체들끼리 연결
     connectElementsByElementId(baseElement, targetElement, flowType) {
-      const startElement = typeof baseElement === 'string' ? elementRegistry.get(baseElement) : baseElement;
-      const endElement = typeof targetElement === 'string' ? elementRegistry.get(targetElement) : targetElement;
+      const startElement =
+        typeof baseElement === 'string' ? elementRegistry.get(baseElement) : baseElement;
+      const endElement =
+        typeof targetElement === 'string' ? elementRegistry.get(targetElement) : targetElement;
       if (startElement && endElement) {
         modeling.connect(startElement, endElement, {
-        type: flowType || 'bpmn:SequenceFlow'
-      });
+          type: flowType || 'bpmn:SequenceFlow',
+        });
       }
     },
 
@@ -147,7 +156,7 @@ function bpmnUtils(bpmnModeler) {
 
       if (!businessObject.extensionElements) {
         businessObject.extensionElements = moddle.create('bpmn:ExtensionElements', {
-          values: []
+          values: [],
         });
       }
 
@@ -155,20 +164,19 @@ function bpmnUtils(bpmnModeler) {
         values: [
           moddle.create('camunda:Property', {
             name,
-            value
-          })
-        ]
+            value,
+          }),
+        ],
       });
 
       businessObject.extensionElements.values.push(extension);
 
       this.updateProperties(baseElement, {
-        extensionElements: businessObject.extensionElements
+        extensionElements: businessObject.extensionElements,
       });
     },
   };
 }
-
 
 // .cavas selector를 이용한 dataset으로 멀티 diagram 생성
 function createDiagrams(params) {
@@ -183,7 +191,9 @@ function createDiagrams(params) {
   async function openDiagram(modeler, element) {
     const diagramURL = element.dataset.diagram;
     if (modeler && (params.xml || diagramURL)) {
-      const diagramXML = params.xml ? params.xml : await fetch(diagramURL).then(response => response.text());
+      const diagramXML = params.xml
+        ? params.xml
+        : await fetch(diagramURL).then(response => response.text());
       await modeler.importXML(diagramXML);
     }
   }
@@ -193,8 +203,14 @@ function createDiagrams(params) {
       const viewerType = element.dataset.editor;
       const id = element.id || '__default';
       const additionalModules = params.additionalModulesMap ? params.additionalModulesMap[id] : [];
-      const moddleExtensions = params.additionalModulesMap ? params.moddleExtensionsMap[id] : [];
-      const modeler = createModeler(viewerType, { container: element, additionalModules, moddleExtensions });
+      const moddleExtensions = params.additionalModulesMap ? params.moddleExtensionsMap[id] : {};
+      const propertiesPanel = params.propertiesPanelMap ? params.propertiesPanelMap[id] : {};
+      const modeler = createModeler(viewerType, {
+        container: element,
+        propertiesPanel,
+        additionalModules,
+        moddleExtensions,
+      });
       openDiagram(modeler, element);
     }
   }

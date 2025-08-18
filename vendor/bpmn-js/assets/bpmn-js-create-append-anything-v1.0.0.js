@@ -1104,9 +1104,17 @@ AppendContextPadProvider.prototype.getContextPadEntries = function(element) {
         action: {
           click: function(event, element) {
 
-            const position = assign(getAppendMenuPosition(element), {
-              cursor: { x: event.x, y: event.y }
-            });
+            // const position = assign(getAppendMenuPosition(element), {
+            //   cursor: { x: event.x, y: event.y }
+            // });
+            const position = {
+              x: element.x + element.width + 10, // padRect.right + X_OFFSET
+              y: element.y + element.height, // padRect.top + Y_OFFSET
+            cursor: {
+              x: event.x,
+              y: event.y
+            }
+          };
 
             popupMenu.open(element, 'bpmn-append', position, {
               title: translate('Append element'),
@@ -1805,10 +1813,10 @@ CreatePaletteProvider.prototype.getPaletteEntries = function(element) {
 
     const target = event && event.target || query('.djs-palette [data-action="create"]');
     const targetPosition = target.getBoundingClientRect();
-
     return target && {
       x: targetPosition.left + targetPosition.width / 2 + X_OFFSET,
-      y: targetPosition.top + targetPosition.height / 2 + Y_OFFSET
+      // y: targetPosition.top + targetPosition.height / 2 + Y_OFFSET
+      y: 0
     };
   };
 

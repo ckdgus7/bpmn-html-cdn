@@ -57,6 +57,8 @@ hr {
     <script src="./vendor/bpmn-js/assets/bpmn-modeler-v18.6.2.js"></script>
   <script src="./vendor/bpmn-js/assets/bpmn-viewer-v18.6.2.js"></script>
   <script src="./vendor/bpmn-js/assets/bpmn-navigated-viewer-v18.6.2.js"></script>
+  <script src="./vendor/bpmn-js/assets/bpmn-js-create-append-anything-v1.0.0.js"></script>
+  <script src="./vendor/bpmn-js/assets/bpmn-js-color-picker-v0.7.1.js"></script>
   <script src="./func/index.js"></script>
 </head>
 <body>
@@ -88,16 +90,24 @@ hr {
 
 const additionalModulesMap = {
   'first-modeler': [],
-  'second-modeler': []
+  'second-modeler': [
+    CreateAppendAnythingModule,
+    BpmnColorPickerModule
+  ]
 };
-const moddleExtensionsMap = {};
+const moddleExtensionsMap = {
+  'first-modeler': {},
+  'second-modeler': {}
+};
 const params = {
   bpmnjsMap: {
     'editor': BpmnModeler,
     'viewer': BpmnViewer,
     'navigated-viewer': BpmnNavigatedViewer
   },
-  elements: document.querySelectorAll('.canvas')
+  elements: document.querySelectorAll('.canvas'),
+  additionalModulesMap,
+  moddleExtensionsMap
 }
 createDiagrams(params)
 

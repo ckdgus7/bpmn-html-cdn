@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="Process_1" isExecutable="false">
+    <bpmn:task id="struct1753337545473" name="기획">
+      <bpmn:incoming>Flow_1o557jf</bpmn:incoming>
+      <bpmn:outgoing>Flow_0mum2g2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="design1753337546929" name="디자인">
+      <bpmn:incoming>Flow_0mum2g2</bpmn:incoming>
+      <bpmn:outgoing>Flow_0gv3484</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:startEvent id="Event_1gwgrcd">
+      <bpmn:outgoing>Flow_1o557jf</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="publishing1753337555633" name="퍼블리싱">
+      <bpmn:incoming>Flow_0gv3484</bpmn:incoming>
+      <bpmn:outgoing>Flow_09wzrqv</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="dev1753337570993" name="백엔드">
+      <bpmn:incoming>Flow_09wzrqv</bpmn:incoming>
+      <bpmn:outgoing>Flow_04uait4</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="Event_1sv54zu">
+      <bpmn:incoming>Flow_04uait4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1o557jf" sourceRef="Event_1gwgrcd" targetRef="struct1753337545473" />
+    <bpmn:sequenceFlow id="Flow_0mum2g2" sourceRef="struct1753337545473" targetRef="design1753337546929" />
+    <bpmn:sequenceFlow id="Flow_0gv3484" sourceRef="design1753337546929" targetRef="publishing1753337555633" />
+    <bpmn:sequenceFlow id="Flow_09wzrqv" sourceRef="publishing1753337555633" targetRef="dev1753337570993" />
+    <bpmn:sequenceFlow id="Flow_04uait4" sourceRef="dev1753337570993" targetRef="Event_1sv54zu" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
+      <bpmndi:BPMNShape id="Event_1gwgrcd_di" bpmnElement="Event_1gwgrcd">
+        <dc:Bounds x="112" y="119" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="publishing1753337555633_di" bpmnElement="publishing1753337555633">
+        <dc:Bounds x="530.171875" y="97" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="design1753337546929_di" bpmnElement="design1753337546929">
+        <dc:Bounds x="370.171875" y="97" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="struct1753337545473_di" bpmnElement="struct1753337545473">
+        <dc:Bounds x="210.171875" y="97" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="dev1753337570993_di" bpmnElement="dev1753337570993">
+        <dc:Bounds x="530.171875" y="224" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1sv54zu_di" bpmnElement="Event_1sv54zu">
+        <dc:Bounds x="402" y="246" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1o557jf_di" bpmnElement="Flow_1o557jf">
+        <di:waypoint x="148" y="137" />
+        <di:waypoint x="210" y="137" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0mum2g2_di" bpmnElement="Flow_0mum2g2">
+        <di:waypoint x="310" y="137" />
+        <di:waypoint x="370" y="137" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0gv3484_di" bpmnElement="Flow_0gv3484">
+        <di:waypoint x="470" y="137" />
+        <di:waypoint x="530" y="137" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_09wzrqv_di" bpmnElement="Flow_09wzrqv">
+        <di:waypoint x="580" y="177" />
+        <di:waypoint x="580" y="224" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_04uait4_di" bpmnElement="Flow_04uait4">
+        <di:waypoint x="530" y="264" />
+        <di:waypoint x="438" y="264" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

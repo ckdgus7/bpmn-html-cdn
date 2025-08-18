@@ -1,7 +1,7 @@
 {
-  "name": "custom",
-  "uri": "http://example.com/schema/custom",
-  "prefix": "custom",
+  "name": "QualityAssurance",
+  "uri": "http://some-company/schema/bpmn/qa",
+  "prefix": "qa",
   "xml": {
     "tagAlias": "lowerCase"
   },
@@ -11,9 +11,9 @@
       "extends": ["bpmn:FlowNode"],
       "properties": [
         {
-          "name": "taskType",
+          "name": "suitable",
           "isAttr": true,
-          "type": "String"
+          "type": "Integer"
         }
       ]
     }

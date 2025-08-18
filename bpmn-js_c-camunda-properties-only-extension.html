@@ -37,11 +37,13 @@
         top: 10px;
         right: 10px;
         z-index: 1000;
+        width: 100px;
+        height: 30px;
       }
     </style>
   </head>
   <body>
-    <h3>변경 내용 : Bpmn PanelModule + Camunda PanelModule 사용 + custom 속성 XML 저장</h3>
+    <!-- <h3>변경 내용 : Bpmn PanelModule + Camunda PanelModule 사용 + custom 속성 XML 저장</h3> -->
     <div id="container">
       <button id="save-button">Save XML</button>
       <div id="canvas"></div>
@@ -61,12 +63,8 @@
           r.json(),
         );
 
-        const {
-          BpmnPropertiesPanelModule,
-          BpmnPropertiesProviderModule,
-          CamundaPlatformPropertiesProviderModule,
-          CamundaPlatformTooltipProvider,
-        } = window.BpmnJSPropertiesPanel;
+        const { BpmnPropertiesPanelModule, CamundaPlatformPropertiesProviderModule } =
+          window.BpmnJSPropertiesPanel;
 
         // ------ Custom Provider ------
         class CustomPropertiesProvider {
@@ -81,11 +79,7 @@
 
           getGroups = element => {
             return groups => {
-              console.log(groups);
-              // 그룹 id는 버전에 따라 다릅니다.
-              // 대표적으로 'CamundaPlatform__Connector', 'CamundaPlatform__InputOutput' 등
               return groups.filter(g => {
-                console.log(g.id);
                 return ![
                   'CamundaPlatform__Input',
                   'CamundaPlatform__Output',
@@ -110,7 +104,6 @@
           propertiesPanel: { parent: '#properties' },
           additionalModules: [
             BpmnPropertiesPanelModule,
-            // BpmnPropertiesProviderModule,
             CamundaPlatformPropertiesProviderModule,
             {
               __init__: ['customPropertiesProvider'],
@@ -165,7 +158,11 @@
                         value: '',
                       }),
                       moddle.create('camunda:Property', {
-                        name: '화면명2',
+                        name: '기타사항1',
+                        value: '',
+                      }),
+                      moddle.create('camunda:Property', {
+                        name: '기타사항2',
                         value: '',
                       }),
                     ],

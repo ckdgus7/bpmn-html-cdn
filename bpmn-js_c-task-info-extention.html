@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>BPMN Custom ContextPad, Palette, Renderer</title>
+
+  <meta charset="utf-8"/>
+  <link rel="stylesheet" href="./vendor/bpmn-js/assets/diagram-js.css" />
+  <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/bpmn-embedded.css" />
+  <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/properties-panel.css" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      outline: none;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    #container, #canvas {
+      height: 80%;
+      width: 80%;
+      border: 1px solid #ccc;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .panel {
+      background-color: #fafafa;
+      border: solid 1px #ccc;
+      border-radius: 2px;
+      font-family: 'Arial', sans-serif;
+      padding: 10px;
+    }
+
+    .djs-label {
+      font-family: 'Arial', sans-serif;
+    }
+
+    .bpmn-icon-task.red {
+      color: #cc0000 !important;
+    }
+
+    .bpmn-icon-task.yellow {
+      color: #ffc800 !important;
+    }
+
+    .bpmn-icon-task.green {
+      color: #52B415 !important;
+    }
+
+    #commnent-popup {
+      color: #111;
+      left: 50%;
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    #commnent-popup #form input, textarea {
+      border: solid 1px #ccc;
+      border-radius: 2px;
+      font-family: 'Arial', sans-serif;
+      padding: 10px;
+    }
+
+    #commnent-popup #form input[type=text], textarea {
+      width: 100%;
+    }
+
+    #commnent-popup #form #warning {
+      background-color: rgba(255, 0, 0, 0.25);
+      border-radius: 2px;
+      padding: 10px;
+    }
+
+    #commnent-popup #form input[type=submit],  input[type=button] {
+      background-color: #bfbad6;
+      color: #111;
+    }
+
+    #hint {
+      bottom: 20px;
+      left: 20px;
+      position: absolute;
+    }
+    #save-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      width: 100px;
+      height: 30px;
+    }
+
+  </style>
+</head>
+<body>
+
+      <button id="save-button">Save XML</button>
+
+  <div id="canvas"></div>
+
+  <div id="commnent-popup" class="panel hidden">
+    <form id="form">
+      <p>
+        <b id="title">Task정보</b>
+      </p>
+      <br />
+      화면명 : <input id="author" type="text" autocomplete="off" />
+      <br />
+      <br />
+      ETC1 : <input id="comment" type="text" autocomplete="off" />
+      <br />
+      <br />
+      기타내용 : <textarea id="body" autocomplete="off"></textarea>
+      <br />
+      <br />
+      <input id="okay" type="submit" value="등록">&nbsp;&nbsp;
+      <input id="cancel" type="button" value="닫기">
+    </form>
+  </div>
+  <!-- BPMN JS -->
+  <!-- <script src="./vendor/bpmn-js/assets/bpmn-modeler-v11.5.0.js"></script> -->
+  <script src="./vendor/bpmn-js/assets/bpmn-modeler-v18.6.2.js"></script>
+  <script src="./utils/index.js"></script>
+  <script>
+
+  (async function async () {
+
+    const HIGH_PRIORITY = 1500,
+          TASK_BORDER_RADIUS = 2,
+          COLOR_GREEN = '#52B415',
+          COLOR_YELLOW = '#ffc800',
+          COLOR_RED = '#cc0000';
+
+    function registerCustomRenderer(eventBus, bpmnRenderer) {
+      const BaseRenderer = extractBaseRenderer(bpmnRenderer);
+      class _CustomRenderer extends BaseRenderer {
+        static $inject = ['eventBus', 'bpmnRenderer'];
+
+        constructor(eventBus, bpmnRenderer) {
+          super(eventBus, HIGH_PRIORITY);
+          this.bpmnRenderer = bpmnRenderer;
+        }
+
+        canRender(element) {
+          return !element.labelTarget;
+        }
+
+
+        drawShape(parentNode, element) {
+          const shape = this.bpmnRenderer.drawShape(parentNode, element);
+          const suitabilityScore = this.getSuitabilityScore(element);
+
+          if (suitabilityScore) {
+            const color = this.getColor(suitabilityScore);
+            const rect = drawRect(parentNode, element.width, 20, TASK_BORDER_RADIUS, color);
+            svgAttr(rect, {
+              transform: 'translate(-20, -10)'
+            });
+            const text = svgCreate('text');
+            svgAttr(text, {
+              fill: '#fff',
+              transform: 'translate(-15, 5)'
+            });
+            svgClasses(text).add('djs-label');
+            svgAppend(text, document.createTextNode(suitabilityScore));
+            svgAppend(parentNode, text);
+          }
+
+          return shape;
+        }
+
+        getShapePath(shape) {
+          if (is(shape, 'bpmn:Task')) {
+            return getRoundRectPath(shape, TASK_BORDER_RADIUS);
+          }
+          return this.bpmnRenderer.getShapePath(shape);
+        }
+
+        getSuitabilityScore(element) {
+          const businessObject = getBusinessObject(element);
+          const { suitable } = businessObject;
+          return suitable;
+        }
+
+        getColor(suitabilityScore) {
+          return COLOR_RED;
+        }
+
+        getShapePath(shape) {
+          return this.bpmnRenderer.getShapePath(shape);
+        }
+      }
+
+      CustomRenderer = _CustomRenderer;
+
+      return new CustomRenderer(eventBus, bpmnRenderer);
+    }
+
+
+    const qaExtension = await fetch('./json/c-task-info-extention.json')
+      .then(response => response.json());
+
+    const containerEl = document.getElementById('canvas'),
+          popupEl = document.getElementById('commnent-popup'),
+          titleEl = document.getElementById('title'),
+          authorEl = document.getElementById('author'),
+          commentEl = document.getElementById('comment'),
+          bodyEl = document.getElementById('body'),
+          okayEl = document.getElementById('okay'),
+          cancelEl = document.getElementById('cancel'),
+          formEl = document.getElementById('form');
+
+    const customModule = {
+      __init__: [ 'customRenderer' ],
+      customRenderer: ['type', registerCustomRenderer]
+    };
+    // create modeler
+    const bpmnModeler = new BpmnModeler({
+      container: '#canvas',
+      additionalModules: [
+        customModule
+      ],
+      moddleExtensions: {
+        qa: qaExtension
+      }
+    });
+
+    document.getElementById('save-button').addEventListener('click', () => {
+      bpmnModeler.saveXML({ format: true }).then(({ xml }) => {
+        console.log('저장된 XML:\n', xml);
+        const blob = new Blob([xml], { type: 'application/xml' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'diagram.bpmn';
+        a.click();
+
+        URL.revokeObjectURL(url);
+      }).catch(err => {
+        console.error('XML 저장 실패:', err);
+      });
+    });
+
+    let element;
+    fetch('./xml/c-task-info-extention.xml')
+      .then(response => response.text())
+      .then(xml => {
+        return bpmnModeler.importXML(xml).then(() => {
+
+        const moddle = bpmnModeler.get('moddle'),
+              modeling = bpmnModeler.get('modeling'),
+              canvas = bpmnModeler.get('canvas');
+
+        requestAnimationFrame(() => {
+          // 현재 뷰박스 얻기
+          const viewbox = canvas.viewbox();
+
+          // 원하는 위치로 이동
+          canvas.viewbox({
+            x: -40,
+            y: 0,
+            width: viewbox.width,
+            height: viewbox.height
+          });
+        });
+
+        // click outside 이벤트 - popup 외 element click 시 팝업 닫음
+        window.addEventListener('click', (event) => {
+          const { target } = event;
+
+          if (target === popupEl || popupEl.contains(target)) {
+            return;
+          }
+
+          popupEl.classList.add('hidden');
+        });
+        // 우클릭 시 이벤트
+        bpmnModeler.on('element.contextmenu', HIGH_PRIORITY, (event) => {
+          event.originalEvent.preventDefault();
+          event.originalEvent.stopPropagation();
+
+          authorEl.value = '';
+          commentEl.value = '';
+          bodyEl.value = '';
+
+          ({ element } = event);
+          const businessObject = getBusinessObject(element);
+          if (!element.parent || element.type !== 'bpmn:Task') return;
+          if (!businessObject.name) return;
+
+          const commentDetails = getExtensionElement(businessObject, 'qa:CommentDetails');
+          if (commentDetails) {
+            const comments = commentDetails?.comments ?? [];
+            if (!comments.length) return;
+            authorEl.value = comments[0].pageName || '';
+            commentEl.value = comments[0].etc1 || '';
+            bodyEl.value = comments[0].body || '';
+          }
+          // const position = {
+          //   x: element.x + 320,
+          //   y: element.y
+          // };
+          // popupEl.style.left = `${position.x}px`;
+          // popupEl.style.top = `${position.y}px`;
+          titleEl.innerText = businessObject.name ? `${businessObject.name} 정보` : 'Task 정보';
+          popupEl.classList.remove('hidden');
+          authorEl.focus();
+        });
+
+        // 저장 버튼 클릭 이벤트
+        formEl.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+
+          const businessObject = getBusinessObject(element);
+
+          // extensionElements element 생성 또는 기존 것 사용
+          const extensionElements = businessObject.extensionElements || moddle.create('bpmn:ExtensionElements');
+
+          // commentDetails element 생성 또는 기존 것 사용
+          let commentDetails = await (extensionElements.values || []).find(el => el.$type === 'qa:CommentDetails');
+
+          if (!commentDetails) {
+            commentDetails = moddle.create('qa:CommentDetails', {
+              comments: []
+            });
+          }
+
+          // commentDetails lastChecked, nextCheck 값 지정
+          commentDetails.lastChecked = new Date().toISOString();
+
+          // comment element 생성 및 author, comment 폼 입력 값 지정
+          const comment = moddle.create('qa:Comment', {
+            pageName: authorEl.value,
+            etc1: commentEl.value,
+            body: bodyEl.value
+          });
+
+          // comment element 하위 노드에 commentDetails 노드 추가
+          // commentDetails.comments.push(comment);
+          commentDetails.comments[0] = comment;
+
+          // extensionElements 하위 노드에 commentDetails 노드 추가
+          extensionElements.values = [];
+          extensionElements.get('values').push(commentDetails);
+
+          // model 업데이트 (extensionElements element 노드 업데이트 - updateProperties실행해야 diagram rerender됨)
+          modeling.updateProperties(element, {
+            extensionElements: extensionElements,
+            suitable: authorEl.value
+          });
+
+          authorEl.value = '';
+          commentEl.value = '';
+          bodyEl.value = '';
+          popupEl.classList.add('hidden');
+        })
+
+        // 닫기 버튼 클릭 이벤트
+        cancelEl.addEventListener('click', (event) => {
+          popupEl.classList.add('hidden');
+        });
+
+        // esc key 이벤트 - esc키를 누르면 팝업 닫힘
+        formEl.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') {
+            popupEl.classList.add('hidden');
+          }
+        });
+      });
+      })
+      .catch(err => {
+        console.error('Failed to import BPMN diagram', err);
+      });
+    })();
+  </script>
+</html>
