@@ -68,12 +68,7 @@
 
         // ------ Custom Provider ------
         class CustomPropertiesProvider {
-          constructor(propertiesPanel, translate, moddle, modeling, elementRegistry, eventBus) {
-            this._translate = translate;
-            this._modeling = modeling;
-            this._elementRegistry = elementRegistry;
-            this._eventBus = eventBus;
-
+          constructor(propertiesPanel) {
             propertiesPanel.registerProvider(500, this);
           }
 
@@ -81,6 +76,13 @@
             return groups => {
               return groups.filter(g => {
                 return ![
+                  'CamundaPlatform__JobExecution',
+                  'CamundaPlatform__ExternalTask',
+                  'CamundaPlatform__CandidateStarter',
+                  'CamundaPlatform__Tasklist',
+                  'CamundaPlatform__HistoryCleanup',
+                  'CamundaPlatform__StartInitiator',
+                  'CamundaPlatform__Form',
                   'CamundaPlatform__Input',
                   'CamundaPlatform__Output',
                   'CamundaPlatform__ExecutionListener',
@@ -93,11 +95,6 @@
 
         CustomPropertiesProvider.$inject = [
           'propertiesPanel',
-          'translate',
-          'moddle',
-          'modeling',
-          'elementRegistry',
-          'eventBus',
         ];
         // ------ Modeler ------
         const bpmnModeler = new BpmnModeler({
@@ -148,6 +145,15 @@
               const elementRegistry = bpmnModeler.get('elementRegistry');
               const moddle = bpmnModeler.get('moddle');
               const modeling = bpmnModeler.get('modeling');
+              const eventBus = bpmnModeler.get('eventBus');
+              eventBus.on('commandStack.shape.create.postExecute', event => {
+                  // extensionProperties 생성
+                  createExtensionProperties(event.context.shape, moddle);
+              });
+              elementRegistry.forEach(el => {
+                  // extensionProperties 생성
+                  createExtensionProperties(el, moddle);
+              });
 
               elementRegistry.forEach(el => {
                 if (el.type === 'bpmn:Task') {
@@ -179,6 +185,31 @@
               console.error('Failed to load BPMN diagram:', err);
             }
           });
+          function createExtensionProperties (el, moddle) {
+            if (el.type !== 'bpmn:Task')  return;
+
+            const extensionProperties = moddle.create('camunda:Properties', {
+                values: [
+                    moddle.create('camunda:Property', {
+                        name: '화면명',
+                        value: '',
+                    }),
+                    moddle.create('camunda:Property', {
+                        name: '기타사항1',
+                        value: '',
+                    }),
+                    moddle.create('camunda:Property', {
+                        name: '기타사항2',
+                        value: '',
+                    }),
+                ],
+            });
+
+            // businessObject에 반영
+            el.businessObject.extensionElements = moddle.create('bpmn:ExtensionElements', {
+                values: [extensionProperties],
+            });
+        };
       })();
     </script>
   </body>
