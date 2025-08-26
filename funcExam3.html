@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="ko">
   <head>
-    <meta charset="utf-8" />
-    <title>bpmn-js Call Activity로 다른 BPD 연결 (CDN)</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8" />
+    <title>bpmn-js: Extension properties로 하위 BPD 연결 데모</title>
+
     <script src="./vendor/bpmn-js/assets/bpmn-modeler-v18.6.2.js"></script>
     <!-- Properties Panel -->
     <script src="./vendor/bpmn-js/assets/bpmn-js-properties-panel-v5.30.0.js"></script>
     <link rel="stylesheet" href="./vendor/bpmn-js/assets/diagram-js.css" />
     <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/bpmn-embedded.css" />
     <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/properties-panel.css" />
+
     <style>
       * {
         box-sizing: border-box;
@@ -63,31 +64,33 @@
         user-select: none;
         cursor: pointer;
       }
-      .hint {
-        color: #6b7280;
-        font-size: 12px;
-      }
     </style>
   </head>
   <body>
     <div class="app">
       <div class="toolbar">
-        <!-- <button id="btn-main">메인 로드</button>
-        <button id="btn-child">결제 프로세스 로드</button> -->
-        <button id="btn-back" disabled>뒤로가기</button>
-        <div class="spacer"></div>
-        <div class="hint">
-          메인 BPD 안의 CallActivity는 calledElement를 참조하여 서브 BPD를 호출합니다.
-        </div>
+        <!-- <button id="btnExport" class="btn">내보내기</button> -->
+        <button id="btnBack" class="btn" disabled>뒤로가기</button>
+        <span style="margin-left: 8px; color: #6b7280">
+          요소의
+          <b>Extension properties</b>
+          에
+          <code>name=sub</code>
+          ,
+          <code>value=order-sub-1.bpmn</code>
+          를 넣으면 오버레이 노출 -> 클릭 시 서브 BPD로 이동 -> 뒤로가기 시 메인 BPD로 이동
+        </span>
       </div>
+
       <div id="canvas"></div>
       <div id="properties"></div>
     </div>
 
     <script>
       (async function () {
-        // 다이어그램 XML들: 실제 운영에선 파일로 분리/로드(fetch) 가능
-        const MAIN_XML = `<?xml version="1.0" encoding="UTF-8"?>
+        // 샘플 다이어그램들 (키 → XML). 실제 서비스에서는 서버에서 키별로 로드해도 됩니다.
+        const DIAGRAMS = {
+          root: `<?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:color="http://www.omg.org/spec/BPMN/non-normative/color/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0cwf817" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.32.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.22.0">
   <bpmn:collaboration id="Collaboration_0p9msoy">
     <bpmn:participant id="Participant_1hqezvr" name="Product Order Capture and Validation" processRef="Process_0z3l5aj" />
@@ -888,9 +891,10 @@
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>
-`;
 
-        const PAYMENT_XML = `<?xml version="1.0" encoding="UTF-8"?>
+`,
+
+          'order-sub-1.bpmn': `<?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:color="http://www.omg.org/spec/BPMN/non-normative/color/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1m5bw25" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.32.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.22.0">
   <bpmn:collaboration id="Collaboration_0hyh282">
     <bpmn:participant id="Participant_1nxs1wm" name="User" processRef="Process_1lqtkj3" />
@@ -2064,20 +2068,36 @@
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>
 
- `;
+ `,
+
+          'payment-sub-1.bpmn': `<?xml version="1.0" encoding="UTF-8"?>
+      <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                   xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                   xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
+                   xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+                   id="Defs_3" targetNamespace="http://bpmn.io/schema/bpmn">
+        <process id="PaymentSubProcess" isExecutable="false">
+          <startEvent id="s2" name="결제 시작"/>
+          <task id="t2" name="PG 승인 요청"/>
+          <endEvent id="e2" name="결제 종료"/>
+          <sequenceFlow id="a" sourceRef="s2" targetRef="t2"/>
+          <sequenceFlow id="b" sourceRef="t2" targetRef="e2"/>
+        </process>
+        <bpmndi:BPMNDiagram id="D3">
+          <bpmndi:BPMNPlane id="P3" bpmnElement="PaymentSubProcess">
+            <bpmndi:BPMNShape id="S_s2" bpmnElement="s2"><omgdc:Bounds x="170" y="120" width="36" height="36"/></bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="S_t2" bpmnElement="t2"><omgdc:Bounds x="260" y="100" width="140" height="80"/></bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="S_e2" bpmnElement="e2"><omgdc:Bounds x="440" y="120" width="36" height="36"/></bpmndi:BPMNShape>
+            <bpmndi:BPMNEdge id="E_a" bpmnElement="a"><omgdi:waypoint x="206" y="138"/><omgdi:waypoint x="260" y="138"/></bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="E_b" bpmnElement="b"><omgdi:waypoint x="400" y="138"/><omgdi:waypoint x="440" y="138"/></bpmndi:BPMNEdge>
+          </bpmndi:BPMNPlane>
+        </bpmndi:BPMNDiagram>
+      </definitions>`,
+        };
 
         // moddle 정의 로드
         const camundaModdle = await fetch('./json/camundaModdle.json').then(r => r.json());
-        // 간단한 "프로세스 저장소" 예시: calledElement 값과 XML을 매핑
-        const PROCESS_REGISTRY = new Map([
-          ['MainProcess', MAIN_XML],
-          ['PaymentProcess.bpmn', PAYMENT_XML],
-        ]);
-
-        // 히스토리 스택 (뒤로가기)
-        const historyStack = [];
-
-        // bpmn-js 모델러 생성
+        // 모델러 생성
         const modeler = new BpmnModeler({
           container: '#canvas',
           // (선택) Properties Panel을 함께 붙이기
@@ -2096,62 +2116,59 @@
           },
         });
 
-        // 다이어그램 로드 함수
-        async function loadDiagramByProcessId(processId, pushHistory = true) {
-          const xml = PROCESS_REGISTRY.get(processId);
+        // 다이어그램 히스토리 (뒤로가기용)
+        const historyStack = [];
+
+        // 현재 XML을 가져오는 함수
+        async function getCurrentXML() {
+          const { xml } = await modeler.saveXML({ format: true });
+          return xml;
+        }
+
+        // 다이어그램 로더 (스택 처리 + 오버레이 재설치)
+        async function loadDiagramByKey(key, pushHistory = true) {
+          const xml = DIAGRAMS[key];
           if (!xml) {
-            alert(`등록되지 않은 processId: ${processId}`);
+            alert(`키 [${key}] 에 해당하는 다이어그램을 찾을 수 없습니다.`);
             return;
           }
-          const current = await exportCurrentXMLSafe();
-          if (pushHistory && current) {
-            historyStack.push(current);
-            updateBackButton();
+
+          if (pushHistory) {
+            // 현재 것을 스택에 저장
+            if (modeler.getDefinitions()) {
+              const currentXML = await getCurrentXML();
+              historyStack.push(currentXML);
+            }
           }
-          try {
-            await modeler.importXML(xml);
-            // 화면 중앙 배치
-            fitViewport();
-          } catch (err) {
-            console.error(err);
-            alert('다이어그램 로드 실패: ' + err.message);
-          }
+
+          await modeler.importXML(xml);
+          fitViewport();
+          installSubOverlays();
+          updateBackButton();
+        }
+
+        function updateBackButton() {
+          document.getElementById('btnBack').disabled = historyStack.length === 0;
         }
 
         function fitViewport() {
           const canvas = modeler.get('canvas');
           canvas.zoom('fit-viewport', 'auto');
         }
-        async function exportCurrentXMLSafe() {
-          try {
-            const { xml } = await modeler.saveXML({ format: true });
-            return xml;
-          } catch {
-            return null;
-          }
-        }
 
-        function updateBackButton() {
-          document.getElementById('btn-back').disabled = historyStack.length === 0;
-        }
+        // camunda:Properties에서 name=sub 값을 읽기
+        function readSubKey(element) {
+          const bo = element.businessObject;
+          if (!bo) return null;
+          const ext = bo.extensionElements;
+          if (!ext || !ext.values) return null;
 
-        // Call Activity 더블클릭 시, calledElement를 읽고 해당 프로세스 로드
-        function setupCallActivityNavigation() {
-          const eventBus = modeler.get('eventBus');
+          // camunda:properties 컨테이너 찾기
+          const propsContainer = ext.values.find(v => v.$type === 'camunda:Properties');
+          if (!propsContainer || !propsContainer.values) return null;
 
-          eventBus.on('element.dblclick', function (e) {
-            const bo = e.element && e.element.businessObject;
-            if (!bo) return;
-
-            if (bo.$type === 'bpmn:CallActivity') {
-              const called = bo.calledElement;
-              if (called && PROCESS_REGISTRY.has(called)) {
-                loadDiagramByProcessId(called, true);
-              } else {
-                alert(`calledElement가 등록되지 않았습니다: ${called || '(없음)'}`);
-              }
-            }
-          });
+          const prop = propsContainer.values.find(p => p.name === 'sub');
+          return prop?.value || null;
         }
 
         // 대상 요소에 오버레이 설치
@@ -2168,64 +2185,59 @@
             if (!bo || bo.$type !== 'bpmn:CallActivity') return;
 
             // collapsed에만 버튼 부착
+            // console.log(el.isExpanded);
             if (el.isExpanded) return;
 
             const label = (bo.name || '하위 프로세스').slice(0, 18);
-            // const subKey = readSubKey(el);
-
-            const called = bo.calledElement; // "PaymentProcess" 등
-            overlays.add(el, {
-              position: { right: 0, top: 80 }, // 우상단
-              html: (() => {
-                const btn = document.createElement('div');
-                btn.className = 'bjs-drilldown-wrapper';
-                btn.innerHTML =
-                  '<button type="button" class="bjs-drilldown bjs-drilldown-empty" title="Open 승인 절차(하위 BPD)"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.81801948,3.50735931 L10.4996894,9.1896894 L10.5,4 L12,4 L12,12 L4,12 L4,10.5 L9.6896894,10.4996894 L3.75735931,4.56801948 C3.46446609,4.27512627 3.46446609,3.80025253 3.75735931,3.50735931 C4.05025253,3.21446609 4.52512627,3.21446609 4.81801948,3.50735931 Z"></path></svg></button>';
-                btn.onclick = () => {
-                  if (called && PROCESS_REGISTRY.has(called)) {
-                    loadDiagramByProcessId(called, true);
-                  } else {
-                    alert(`calledElement가 등록되지 않았습니다: ${called || '(없음)'}`);
-                  }
-                };
-                return btn;
-              })(),
-            });
+            const subKey = readSubKey(el);
+            console.log(subKey);
+            if (subKey) {
+              overlays.add(el, {
+                position: { right: 0, top: 80 }, // 우상단
+                html: (() => {
+                  const btn = document.createElement('div');
+                  btn.className = 'bjs-drilldown-wrapper';
+                  btn.innerHTML =
+                    '<button type="button" class="bjs-drilldown bjs-drilldown-empty" title="Open 승인 절차(하위 BPD)"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.81801948,3.50735931 L10.4996894,9.1896894 L10.5,4 L12,4 L12,12 L4,12 L4,10.5 L9.6896894,10.4996894 L3.75735931,4.56801948 C3.46446609,4.27512627 3.46446609,3.80025253 3.75735931,3.50735931 C4.05025253,3.21446609 4.52512627,3.21446609 4.81801948,3.50735931 Z"></path></svg></button>';
+                  btn.onclick = () => loadDiagramByKey(subKey, true);
+                  return btn;
+                })(),
+              });
+            }
           });
         }
 
-        // 상단 버튼 핸들러
-        // document
-        //   .getElementById('btn-main')
-        //   .addEventListener('click', () => loadDiagramByProcessId('MainProcess', true));
-        // document
-        //   .getElementById('btn-child')
-        //   .addEventListener('click', () => loadDiagramByProcessId('PaymentProcess', true));
+        // 초기 로드
+        loadDiagramByKey('root', false);
 
-        document.getElementById('btn-back').addEventListener('click', async () => {
-          const prev = historyStack.pop();
+        // 버튼 이벤트
+        document.getElementById('btnBack').onclick = async () => {
+          if (!historyStack.length) return;
+          const prevXML = historyStack.pop();
+          await modeler.importXML(prevXML);
+          fitViewport();
+          installSubOverlays();
           updateBackButton();
-          if (prev) {
-            await modeler.importXML(prev);
+        };
 
-            fitViewport();
-            installSubOverlays();
-          }
-        });
+        // document.getElementById('btnExport').onclick = async () => {
+        //   const xml = await getCurrentXML();
+        //   const blob = new Blob([xml], { type: 'application/xml' });
+        //   const url = URL.createObjectURL(blob);
+        //   const a = Object.assign(document.createElement('a'), {
+        //     href: url,
+        //     download: 'diagram.xml',
+        //   });
+        //   document.body.appendChild(a);
+        //   a.click();
+        //   a.remove();
+        //   URL.revokeObjectURL(url);
+        // };
 
         // 모델 변경 시 오버레이 갱신 (sub 속성 수정 반영)
         modeler.on('commandStack.changed', () => {
           installSubOverlays();
         });
-        // 초기 로드
-        (async function bootstrap() {
-          await modeler.importXML(MAIN_XML);
-
-          fitViewport();
-          // setupCallActivityNavigation();
-          updateBackButton();
-          installSubOverlays();
-        })();
       })();
     </script>
   </body>

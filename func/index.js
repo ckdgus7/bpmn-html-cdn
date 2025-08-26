@@ -4,6 +4,7 @@ function bpmnUtils(bpmnModeler) {
   const modeling = bpmnModeler.get('modeling');
   const autoPlace = bpmnModeler.get('autoPlace');
   const moddle = bpmnModeler.get('moddle');
+  const canvas = bpmnModeler.get('canvas');
   const selection = bpmnModeler.get('selection');
 
   return {
@@ -51,7 +52,6 @@ function bpmnUtils(bpmnModeler) {
     // xml load 후 cavas 내 viewbox 위치 및 사이즈 지정
     setCanvas(settings = {}) {
       requestAnimationFrame(() => {
-        const canvas = bpmnModeler.get('canvas');
         // 현재 뷰박스 얻기
         const viewbox = canvas.viewbox();
 
@@ -64,6 +64,11 @@ function bpmnUtils(bpmnModeler) {
           ...settings,
         });
       });
+    },
+
+    // 화면 중앙 배치
+    setCanvasViewPortAuto() {
+      canvas.zoom('fit-viewport', 'auto');
     },
 
     // diagram을 xml로 다운로드
@@ -91,13 +96,13 @@ function bpmnUtils(bpmnModeler) {
       return elementFactory.createShape({ type, ...props });
     },
 
-    // 객체를 startElement의 객체 다음으로 추가
+    // 객체를 baseElement의 객체 다음으로 추가
     appendElement(element, type = 'bpmn:Task', name = '') {
-      const startElement = typeof element === 'string' ? elementRegistry.get(element) : element;
-      if (!startElement || !autoPlace) return;
+      const baseElement = typeof element === 'string' ? elementRegistry.get(element) : element;
+      if (!baseElement || !autoPlace) return;
 
       const shape = this.createElement(type);
-      autoPlace.append(startElement, shape);
+      autoPlace.append(baseElement, shape);
 
       if (name) {
         modeling.updateLabel(shape, name);

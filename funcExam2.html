@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <title>bpmn-js Sub-Process Drilldown (bjs-drilldown 버튼 즉시 이동)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <script src="./vendor/bpmn-js/assets/bpmn-modeler-v18.6.2.js"></script>
+    <!-- Properties Panel -->
+    <script src="./vendor/bpmn-js/assets/bpmn-js-properties-panel-v5.30.0.js"></script>
+    <link rel="stylesheet" href="./vendor/bpmn-js/assets/diagram-js.css" />
+    <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/bpmn-embedded.css" />
+    <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/properties-panel.css" />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      }
+      .app {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        grid-template-rows: auto 1fr;
+        grid-template-areas:
+          'toolbar toolbar'
+          'canvas  props';
+        height: 100vh;
+      }
+      .toolbar {
+        grid-area: toolbar;
+        padding: 8px;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      #canvas {
+        grid-area: canvas;
+      }
+      #properties {
+        grid-area: props;
+        border-left: 1px solid #e5e7eb;
+      }
+      .btn {
+        padding: 6px 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        background: #fff;
+        cursor: pointer;
+      }
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .overlay-btn {
+        background: #111827;
+        color: #fff;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 12px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        user-select: none;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="toolbar">
+        <button id="btn-main">메인 로드</button>
+        <button id="btn-child">승인 프로세스 로드</button>
+        <button id="btn-back" disabled>뒤로</button>
+        <div class="spacer"></div>
+        <div style="color: #6b7280; font-size: 12px">
+          Sub-Process 우상단의
+          <b>bjs-drilldown</b>
+          버튼 클릭 시 즉시 하위 BPD로 이동 (collapsed Sub-Process 요소 ID → 대상 processId)
+        </div>
+      </div>
+      <div id="canvas"></div>
+      <div id="properties"></div>
+    </div>
+    <script>
+      (async function () {
+        // ─────────────────────────────────────────────────────────────────────────────
+        // 1) 예시 BPMN XML (운영에서는 파일 분리 + fetch 권장)
+        // ─────────────────────────────────────────────────────────────────────────────
+        const MAIN_XML = `<?xml version="1.0" encoding="UTF-8"?>
+      <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                        xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                        xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                        xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                        id="Defs_Main" targetNamespace="http://example.com/bpmn">
+        <bpmn:process id="MainProcess" name="메인 프로세스" isExecutable="false">
+          <bpmn:startEvent id="StartEvent_1" name="시작" />
+          <bpmn:subProcess id="Sub_Approval" name="승인 절차(하위 BPD)">
+            <!-- collapsed; 내부는 생략 -->
+          </bpmn:subProcess>
+          <bpmn:endEvent id="EndEvent_1" name="종료" />
+
+          <bpmn:sequenceFlow id="flow1" sourceRef="StartEvent_1" targetRef="Sub_Approval" />
+          <bpmn:sequenceFlow id="flow2" sourceRef="Sub_Approval" targetRef="EndEvent_1" />
+        </bpmn:process>
+
+        <bpmndi:BPMNDiagram id="BPMNDiagram_Main">
+          <bpmndi:BPMNPlane id="BPMNPlane_Main" bpmnElement="MainProcess">
+            <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+              <dc:Bounds x="160" y="120" width="36" height="36" />
+            </bpmndi:BPMNShape>
+
+            <bpmndi:BPMNShape id="Sub_Approval_di" bpmnElement="Sub_Approval" isExpanded="false">
+              <dc:Bounds x="250" y="95" width="240" height="86" />
+            </bpmndi:BPMNShape>
+
+            <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">
+              <dc:Bounds x="540" y="120" width="36" height="36" />
+            </bpmndi:BPMNShape>
+
+            <bpmndi:BPMNEdge id="flow1_di" bpmnElement="flow1">
+              <di:waypoint x="196" y="138" />
+              <di:waypoint x="250" y="138" />
+            </bpmndi:BPMNEdge>
+
+            <bpmndi:BPMNEdge id="flow2_di" bpmnElement="flow2">
+              <di:waypoint x="490" y="138" />
+              <di:waypoint x="540" y="138" />
+            </bpmndi:BPMNEdge>
+          </bpmndi:BPMNPlane>
+        </bpmndi:BPMNDiagram>
+      </bpmn:definitions>`;
+
+        const APPROVAL_XML = `<?xml version="1.0" encoding="UTF-8"?>
+      <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                        xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                        xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                        xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                        id="Defs_Approval" targetNamespace="http://example.com/bpmn">
+        <bpmn:process id="ApprovalProcess" name="승인 프로세스" isExecutable="false">
+          <bpmn:startEvent id="Start_Appr" name="승인 시작" />
+          <bpmn:task id="Task_Request" name="승인 요청" />
+          <bpmn:userTask id="Task_Review" name="검토" />
+          <bpmn:exclusiveGateway id="Gw_Approved" name="승인 여부" />
+          <bpmn:task id="Task_Notify" name="결과 통보" />
+          <bpmn:endEvent id="End_Appr" name="종료" />
+
+          <bpmn:sequenceFlow id="a1" sourceRef="Start_Appr" targetRef="Task_Request" />
+          <bpmn:sequenceFlow id="a2" sourceRef="Task_Request" targetRef="Task_Review" />
+          <bpmn:sequenceFlow id="a3" sourceRef="Task_Review" targetRef="Gw_Approved" />
+          <bpmn:sequenceFlow id="a4" sourceRef="Gw_Approved" targetRef="Task_Notify" />
+          <bpmn:sequenceFlow id="a5" sourceRef="Task_Notify" targetRef="End_Appr" />
+        </bpmn:process>
+
+        <bpmndi:BPMNDiagram id="BPMNDiagram_Approval">
+          <bpmndi:BPMNPlane id="BPMNPlane_Approval" bpmnElement="ApprovalProcess">
+            <bpmndi:BPMNShape id="Start_Appr_di" bpmnElement="Start_Appr">
+              <dc:Bounds x="130" y="120" width="36" height="36" />
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Task_Request_di" bpmnElement="Task_Request">
+              <dc:Bounds x="210" y="100" width="130" height="80" />
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Task_Review_di" bpmnElement="Task_Review">
+              <dc:Bounds x="360" y="100" width="130" height="80" />
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Gw_Approved_di" bpmnElement="Gw_Approved" isMarkerVisible="true">
+              <dc:Bounds x="520" y="115" width="50" height="50" />
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Task_Notify_di" bpmnElement="Task_Notify">
+              <dc:Bounds x="600" y="100" width="140" height="80" />
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="End_Appr_di" bpmnElement="End_Appr">
+              <dc:Bounds x="760" y="120" width="36" height="36" />
+            </bpmndi:BPMNShape>
+
+            <bpmndi:BPMNEdge id="a1_di" bpmnElement="a1"><di:waypoint x="166" y="138"/><di:waypoint x="210" y="140"/></bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="a2_di" bpmnElement="a2"><di:waypoint x="340" y="140"/><di:waypoint x="360" y="140"/></bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="a3_di" bpmnElement="a3"><di:waypoint x="490" y="140"/><di:waypoint x="520" y="140"/></bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="a4_di" bpmnElement="a4"><di:waypoint x="570" y="140"/><di:waypoint x="600" y="140"/></bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="a5_di" bpmnElement="a5"><di:waypoint x="740" y="140"/><di:waypoint x="760" y="138"/></bpmndi:BPMNEdge>
+          </bpmndi:BPMNPlane>
+        </bpmndi:BPMNDiagram>
+      </bpmn:definitions>`;
+
+        // moddle 정의 로드
+        const camundaModdle = await fetch('./json/camundaModdle.json').then(r => r.json());
+        // ─────────────────────────────────────────────────────────────────────────────
+        // 2) 라우팅/매핑
+        // ─────────────────────────────────────────────────────────────────────────────
+        const PROCESS_REGISTRY = new Map([
+          ['MainProcess', MAIN_XML],
+          ['ApprovalProcess', APPROVAL_XML],
+        ]);
+        // collapsed Sub-Process 요소 ID → 대상 processId
+        const SUBPROC_TO_PROCESS = new Map([['Sub_Approval', 'ApprovalProcess']]);
+
+        // 뒤로가기 스택
+        const historyStack = [];
+
+        // ─────────────────────────────────────────────────────────────────────────────
+        // 3) bpmn-js Modeler
+        // ─────────────────────────────────────────────────────────────────────────────
+        const modeler = new BpmnModeler({
+          container: '#canvas',
+          // (선택) Properties Panel을 함께 붙이기
+          propertiesPanel: {
+            parent: '#properties',
+          },
+          additionalModules: [
+            window.BpmnJSPropertiesPanel.BpmnPropertiesPanelModule,
+            window.BpmnJSPropertiesPanel.BpmnPropertiesProviderModule,
+            window.BpmnJSPropertiesPanel.CamundaPlatformPropertiesProviderModule,
+            window.BpmnJSPropertiesPanel.CamundaPlatformTooltipProvider,
+          ],
+          moddleExtensions: {
+            // camunda:Properties 사용을 위해 camunda moddle 등록
+            camunda: camundaModdle,
+          },
+        });
+
+        async function loadDiagramByProcessId(processId, pushHistory = true) {
+          const xml = PROCESS_REGISTRY.get(processId);
+          if (!xml) {
+            alert(`등록되지 않은 processId: ${processId}`);
+            return;
+          }
+          const current = await exportCurrentXMLSafe();
+          if (pushHistory && current) {
+            historyStack.push(current);
+            updateBackButton();
+          }
+          try {
+            await modeler.importXML(xml);
+            modeler.get('canvas').zoom('fit-viewport', 'auto');
+            installDrilldownOverlays(); // 다이어그램마다 bjs-drilldown 설치
+          } catch (err) {
+            console.error(err);
+            alert('다이어그램 로드 실패: ' + err.message);
+          }
+        }
+
+        async function exportCurrentXMLSafe() {
+          try {
+            const { xml } = await modeler.saveXML({ format: true });
+            return xml;
+          } catch {
+            return null;
+          }
+        }
+
+        function updateBackButton() {
+          document.getElementById('btn-back').disabled = historyStack.length === 0;
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────────
+        // 4) collapsed Sub-Process에 bjs-drilldown 버튼 오버레이 설치
+        // ─────────────────────────────────────────────────────────────────────────────
+        function installDrilldownOverlays() {
+          const overlays = modeler.get('overlays');
+          const elementRegistry = modeler.get('elementRegistry');
+
+          overlays.clear();
+
+          elementRegistry.getAll().forEach(el => {
+            const bo = el.businessObject;
+            if (!bo || bo.$type !== 'bpmn:SubProcess') return;
+
+            // collapsed 인 경우만 drilldown 부착
+            if (el.isExpanded) return;
+
+            const targetProcess = SUBPROC_TO_PROCESS.get(el.id);
+            const btn = createDrilldownButton(bo.name || '하위 프로세스', () => {
+              if (!targetProcess || !PROCESS_REGISTRY.has(targetProcess)) {
+                alert(`Sub-Process 매핑이 없습니다: ${el.id}`);
+                return;
+              }
+              // "바로 이동": 클릭 즉시 전환
+              loadDiagramByProcessId(targetProcess, true);
+            });
+
+            overlays.add(el, 'bjs-drilldown', {
+              position: { right: 0, top: 90 }, // 우상단
+              html: btn,
+            });
+          });
+        }
+
+        function createDrilldownButton(labelText, onClick) {
+          const node = document.createElement('div');
+          node.className = 'bjs-drilldown-wrapper';
+          // node.title = '하위 프로세스로 이동';
+
+          node.innerHTML =
+            '<button type="button" class="bjs-drilldown bjs-drilldown-empty" title="Open 승인 절차(하위 BPD)"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.81801948,3.50735931 L10.4996894,9.1896894 L10.5,4 L12,4 L12,12 L4,12 L4,10.5 L9.6896894,10.4996894 L3.75735931,4.56801948 C3.46446609,4.27512627 3.46446609,3.80025253 3.75735931,3.50735931 C4.05025253,3.21446609 4.52512627,3.21446609 4.81801948,3.50735931 Z"></path></svg></button>';
+          // const label = document.createElement('span');
+          // label.className = 'bjs-drilldown__label';
+          // label.textContent = labelText.length > 18 ? labelText.slice(0, 18) + '…' : labelText;
+
+          // const icon = document.createElement('span');
+          // icon.className = 'bjs-drilldown__icon';
+
+          // node.appendChild(label);
+          // node.appendChild(icon);
+
+          node.addEventListener('click', e => {
+            e.stopPropagation();
+            onClick();
+          });
+
+          return node;
+        }
+
+        // 다이어그램 변경 시에도 오버레이 유지
+        function setupLiveOverlayRefresh() {
+          const eventBus = modeler.get('eventBus');
+          eventBus.on(['shape.added', 'shape.removed', 'elements.changed'], () => {
+            clearTimeout(window.__overlayRefreshTimer);
+            window.__overlayRefreshTimer = setTimeout(installDrilldownOverlays, 50);
+          });
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────────
+        // 5) 상단 버튼
+        // ─────────────────────────────────────────────────────────────────────────────
+        document
+          .getElementById('btn-main')
+          .addEventListener('click', () => loadDiagramByProcessId('MainProcess', true));
+        document
+          .getElementById('btn-child')
+          .addEventListener('click', () => loadDiagramByProcessId('ApprovalProcess', true));
+        document.getElementById('btn-back').addEventListener('click', async () => {
+          const prev = historyStack.pop();
+          updateBackButton();
+          if (prev) {
+            await modeler.importXML(prev);
+            modeler.get('canvas').zoom('fit-viewport', 'auto');
+            installDrilldownOverlays();
+          }
+        });
+
+        // ─────────────────────────────────────────────────────────────────────────────
+        // 6) 초기화
+        // ─────────────────────────────────────────────────────────────────────────────
+        (async function bootstrap() {
+          await modeler.importXML(MAIN_XML);
+          modeler.get('canvas').zoom('fit-viewport', 'auto');
+          installDrilldownOverlays();
+          setupLiveOverlayRefresh();
+          updateBackButton();
+        })();
+      })();
+    </script>
+  </body>
+</html>
