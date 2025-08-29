@@ -69,15 +69,20 @@
   <body>
     <div class="app">
       <div class="toolbar">
-        <!-- <button id="btnExport" class="btn">내보내기</button> -->
+        <!-- <span id="btnGroup">
+          <button id="btnBack" class="btn" disabled>뒤로가기</button>
+          <button id="btnExport" class="btn">내보내기</button>
+        </span> -->
         <button id="btnBack" class="btn" disabled>뒤로가기</button>
+        <button id="btnExport" class="btn">내보내기</button>
+        <!-- <button id="btnBack" class="btn" disabled>뒤로가기</button> -->
         <span style="margin-left: 8px; color: #6b7280">
           요소의
           <b>Extension properties</b>
           에
           <code>name=sub</code>
           ,
-          <code>value=order-sub-1.bpmn</code>
+          <code>value=order-sub-1</code>
           를 넣으면 오버레이 노출 -> 클릭 시 서브 BPD로 이동 -> 뒤로가기 시 메인 BPD로 이동
         </span>
       </div>
@@ -89,6 +94,14 @@
     <script>
       (async function () {
         // 샘플 다이어그램들 (키 → XML). 실제 서비스에서는 서버에서 키별로 로드해도 됩니다.
+        // function appendBtn(id) {
+        //   const targetEl = document.getElementById('btnGroup');
+        //   let btn = document.createElement('button');
+        //   btn.id = id;
+        //   btn.className = 'btn';
+        //   btn.onclick = () => loadDiagramByKey(id, true);
+        //   targetEl.append(btn);
+        // }
         const DIAGRAMS = {
           root: `<?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:color="http://www.omg.org/spec/BPMN/non-normative/color/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0cwf817" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.32.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.22.0">
@@ -894,7 +907,7 @@
 
 `,
 
-          'order-sub-1.bpmn': `<?xml version="1.0" encoding="UTF-8"?>
+          'order-sub-1': `<?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:color="http://www.omg.org/spec/BPMN/non-normative/color/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1m5bw25" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.32.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.22.0">
   <bpmn:collaboration id="Collaboration_0hyh282">
     <bpmn:participant id="Participant_1nxs1wm" name="User" processRef="Process_1lqtkj3" />
@@ -2070,7 +2083,7 @@
 
  `,
 
-          'payment-sub-1.bpmn': `<?xml version="1.0" encoding="UTF-8"?>
+          'payment-sub-1': `<?xml version="1.0" encoding="UTF-8"?>
       <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
                    xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
                    xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
@@ -2152,8 +2165,8 @@
         }
 
         function fitViewport() {
-          const canvas = modeler.get('canvas');
-          canvas.zoom('fit-viewport', 'auto');
+          // const canvas = modeler.get('canvas');
+          // canvas.zoom('fit-viewport', 'auto');
         }
 
         // camunda:Properties에서 name=sub 값을 읽기
@@ -2181,7 +2194,7 @@
 
           elementRegistry.getAll().forEach(el => {
             const bo = el.businessObject;
-            console.log(bo.$type);
+            // console.log(bo.$type);
             if (!bo || bo.$type !== 'bpmn:CallActivity') return;
 
             // collapsed에만 버튼 부착
@@ -2190,7 +2203,7 @@
 
             const label = (bo.name || '하위 프로세스').slice(0, 18);
             const subKey = readSubKey(el);
-            console.log(subKey);
+            // console.log(subKey);
             if (subKey) {
               overlays.add(el, {
                 position: { right: 0, top: 80 }, // 우상단
@@ -2220,19 +2233,19 @@
           updateBackButton();
         };
 
-        // document.getElementById('btnExport').onclick = async () => {
-        //   const xml = await getCurrentXML();
-        //   const blob = new Blob([xml], { type: 'application/xml' });
-        //   const url = URL.createObjectURL(blob);
-        //   const a = Object.assign(document.createElement('a'), {
-        //     href: url,
-        //     download: 'diagram.xml',
-        //   });
-        //   document.body.appendChild(a);
-        //   a.click();
-        //   a.remove();
-        //   URL.revokeObjectURL(url);
-        // };
+        document.getElementById('btnExport').onclick = async () => {
+          const xml = await getCurrentXML();
+          const blob = new Blob([xml], { type: 'application/xml' });
+          const url = URL.createObjectURL(blob);
+          const a = Object.assign(document.createElement('a'), {
+            href: url,
+            download: 'diagram.xml',
+          });
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+        };
 
         // 모델 변경 시 오버레이 갱신 (sub 속성 수정 반영)
         modeler.on('commandStack.changed', () => {

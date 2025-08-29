@@ -1,353 +1,691 @@
 <!DOCTYPE html>
 <html lang="ko">
   <head>
-    <meta charset="utf-8" />
-    <title>bpmn-js Sub-Process Drilldown (bjs-drilldown 버튼 즉시 이동)</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-    <script src="./vendor/bpmn-js/assets/bpmn-modeler-v18.6.2.js"></script>
+    <meta charset="UTF-8" />
+    <title>BPMN Diff (속성/DI/Extensions 비교 하이라이트)</title>
+    <script src="./vendor/bpmn-js/assets/bpmn-navigated-viewer-v18.6.2.js"></script>
     <!-- Properties Panel -->
-    <script src="./vendor/bpmn-js/assets/bpmn-js-properties-panel-v5.30.0.js"></script>
+    <!-- <script src="./vendor/bpmn-js/assets/bpmn-js-properties-panel-v5.30.0.js"></script> -->
     <link rel="stylesheet" href="./vendor/bpmn-js/assets/diagram-js.css" />
     <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/bpmn-embedded.css" />
     <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/properties-panel.css" />
     <style>
-      * {
-        box-sizing: border-box;
-      }
       body {
         margin: 0;
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
       }
-      .app {
+      header {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      #wrap {
         display: grid;
-        grid-template-columns: 1fr 320px;
-        grid-template-rows: auto 1fr;
-        grid-template-areas:
-          'toolbar toolbar'
-          'canvas  props';
-        height: 100vh;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        height: calc(100vh - 62px);
+        padding: 8px;
+        box-sizing: border-box;
+      }
+      .panel {
+        position: relative;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .titlebar {
+        position: absolute;
+        inset: 8px auto auto 8px;
+        background: #111827;
+        color: #fff;
+        font-size: 12px;
+        padding: 3px 8px;
+        border-radius: 6px;
+        opacity: 0.85;
+        z-index: 10;
+      }
+      .canvas {
+        width: 100%;
+        height: 100%;
+        background: #f9fafb;
+      }
+      .legend {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 12px;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        border: 1px solid #0002;
+      }
+      .dot.add {
+        background: #10b981;
+      } /* added -> green */
+      .dot.del {
+        background: #ef4444;
+      } /* removed -> red */
+      .dot.mod {
+        background: #490bf5;
+      } /* changed -> amber */
+
+      /* Marker styles for bpmn-js */
+      .added .djs-visual > :is(rect, circle, polygon, path) {
+        stroke: #10b981 !important;
+        stroke-width: 3px !important;
+      }
+      .removed .djs-visual > :is(rect, circle, polygon, path) {
+        stroke: #ef4444 !important;
+        stroke-width: 3px !important;
+      }
+      .changed .djs-visual > :is(rect, circle, polygon, path) {
+        stroke: #490bf5 !important;
+        stroke-width: 3px !important;
+      }
+
+      /* Overlay bubble */
+      .diff-overlay {
+        font-size: 11px;
+        background: #111827;
+        color: #fff;
+        padding: 6px 8px;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px #0003;
+        width: 200px;
+        max-width: 260px;
+        line-height: 1.3;
+        opacity: 0.92;
+      }
+      .diff-overlay b {
+        color: #60a5fa;
       }
       .toolbar {
-        grid-area: toolbar;
-        padding: 8px;
-        border-bottom: 1px solid #e5e7eb;
         display: flex;
         gap: 8px;
         align-items: center;
       }
-      #canvas {
-        grid-area: canvas;
-      }
-      #properties {
-        grid-area: props;
-        border-left: 1px solid #e5e7eb;
-      }
-      .btn {
-        padding: 6px 10px;
-        border: 1px solid #d1d5db;
-        border-radius: 8px;
-        background: #fff;
-        cursor: pointer;
-      }
-      .btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-      .overlay-btn {
-        background: #111827;
-        color: #fff;
-        padding: 4px 8px;
-        border-radius: 6px;
+      input[type='file'] {
         font-size: 12px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-        user-select: none;
-        cursor: pointer;
       }
     </style>
   </head>
   <body>
-    <div class="app">
+    <header>
       <div class="toolbar">
-        <button id="btn-main">메인 로드</button>
-        <button id="btn-child">승인 프로세스 로드</button>
-        <button id="btn-back" disabled>뒤로</button>
-        <div class="spacer"></div>
-        <div style="color: #6b7280; font-size: 12px">
-          Sub-Process 우상단의
-          <b>bjs-drilldown</b>
-          버튼 클릭 시 즉시 하위 BPD로 이동 (collapsed Sub-Process 요소 ID → 대상 processId)
-        </div>
+        <button id="btn-load-sample">Master BPD / Modified BPD 로드</button>
+        <!-- <label>
+          마스터 XML
+          <input id="file-master" type="file" accept=".bpmn,.xml" />
+        </label>
+        <label>
+          수정본 XML
+          <input id="file-mod" type="file" accept=".bpmn,.xml" />
+        </label> -->
+        <!-- <label>
+          <input id="chk-deep" type="checkbox" checked />
+          Deep 비교(속성/문서/DI/확장)
+        </label> -->
+        <button id="btn-compare">Diff 실행</button>
       </div>
-      <div id="canvas"></div>
-      <div id="properties"></div>
+      <div class="legend">
+        <span class="badge">
+          <i class="dot add"></i>
+          추가(Modify에만 존재)
+        </span>
+        <span class="badge">
+          <i class="dot del"></i>
+          삭제(Master에만 존재)
+        </span>
+        <span class="badge">
+          <i class="dot mod"></i>
+          변경(속성/DI/확장 차이)
+        </span>
+      </div>
+    </header>
+
+    <div id="wrap">
+      <div class="panel">
+        <div class="titlebar">마스터 BPD</div>
+        <div id="viewer-left" class="canvas"></div>
+      </div>
+      <div class="panel">
+        <div class="titlebar">수정된 BPD</div>
+        <div id="viewer-right" class="canvas"></div>
+      </div>
     </div>
+
     <script>
-      (async function () {
-        // ─────────────────────────────────────────────────────────────────────────────
-        // 1) 예시 BPMN XML (운영에서는 파일 분리 + fetch 권장)
-        // ─────────────────────────────────────────────────────────────────────────────
-        const MAIN_XML = `<?xml version="1.0" encoding="UTF-8"?>
-      <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                        xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
-                        xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
-                        xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
-                        id="Defs_Main" targetNamespace="http://example.com/bpmn">
-        <bpmn:process id="MainProcess" name="메인 프로세스" isExecutable="false">
-          <bpmn:startEvent id="StartEvent_1" name="시작" />
-          <bpmn:subProcess id="Sub_Approval" name="승인 절차(하위 BPD)">
-            <!-- collapsed; 내부는 생략 -->
-          </bpmn:subProcess>
-          <bpmn:endEvent id="EndEvent_1" name="종료" />
+      // --- Namespaces & helpers ---
+      const BPMN_NS = 'http://www.omg.org/spec/BPMN/20100524/MODEL';
+      const CAMUNDA_NS = 'http://camunda.org/schema/1.0/bpmn';
+      const BPMNDI_NS = 'http://www.omg.org/spec/BPMN/20100524/DI'; // bpmndi:*
+      const DC_NS = 'http://www.omg.org/spec/DD/20100524/DC'; // dc:Bounds
+      const DI_NS = 'http://www.omg.org/spec/DD/20100524/DI'; // di:waypoint
 
-          <bpmn:sequenceFlow id="flow1" sourceRef="StartEvent_1" targetRef="Sub_Approval" />
-          <bpmn:sequenceFlow id="flow2" sourceRef="Sub_Approval" targetRef="EndEvent_1" />
-        </bpmn:process>
+      // 텍스트 노드 로컬네임 (기존 TEXT_NODES 대체)
+      const TEXT_LOCAL_NAMES = [
+        'documentation',
+        'conditionExpression',
+        'message',
+        'signal',
+        'script',
+      ];
 
-        <bpmndi:BPMNDiagram id="BPMNDiagram_Main">
-          <bpmndi:BPMNPlane id="BPMNPlane_Main" bpmnElement="MainProcess">
-            <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
-              <dc:Bounds x="160" y="120" width="36" height="36" />
-            </bpmndi:BPMNShape>
+      // 태그에서 네임스페이스 접두어 제거한 로컬네임 구하기
+      const localNameOf = node =>
+        node?.localName ||
+        ((node?.tagName || '').includes(':') ? node.tagName.split(':')[1] : node?.tagName || '');
 
-            <bpmndi:BPMNShape id="Sub_Approval_di" bpmnElement="Sub_Approval" isExpanded="false">
-              <dc:Bounds x="250" y="95" width="240" height="86" />
-            </bpmndi:BPMNShape>
+      // 네임스페이스 안전 텍스트 추출
+      const textByNS = (node, ns, local) => {
+        const list = node.getElementsByTagNameNS(ns, local);
+        return list && list.length ? (list[0].textContent || '').trim() : '';
+      };
 
-            <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">
-              <dc:Bounds x="540" y="120" width="36" height="36" />
-            </bpmndi:BPMNShape>
+      // BPMNShape → dc:Bounds
+      function findBoundsForElementIdNS(doc, elementId) {
+        const shapes = doc.getElementsByTagNameNS(BPMNDI_NS, 'BPMNShape');
+        for (const shape of shapes) {
+          if (shape.getAttribute('bpmnElement') === elementId) {
+            const bounds = shape.getElementsByTagNameNS(DC_NS, 'Bounds');
+            if (bounds && bounds.length) {
+              const b = bounds[0];
+              return {
+                x: b.getAttribute('x'),
+                y: b.getAttribute('y'),
+                width: b.getAttribute('width'),
+                height: b.getAttribute('height'),
+              };
+            }
+          }
+        }
+        return null;
+      }
 
-            <bpmndi:BPMNEdge id="flow1_di" bpmnElement="flow1">
-              <di:waypoint x="196" y="138" />
-              <di:waypoint x="250" y="138" />
-            </bpmndi:BPMNEdge>
+      // BPMNEdge → di:waypoint[]
+      function findWaypointsForElementIdNS(doc, elementId) {
+        const edges = doc.getElementsByTagNameNS(BPMNDI_NS, 'BPMNEdge');
+        for (const edge of edges) {
+          if (edge.getAttribute('bpmnElement') === elementId) {
+            const wps = edge.getElementsByTagNameNS(DI_NS, 'waypoint');
+            const arr = [];
+            for (const wp of wps) {
+              const x = wp.getAttribute('x');
+              const y = wp.getAttribute('y');
+              if (x != null && y != null) arr.push({ x, y });
+            }
+            return arr.length ? arr : null;
+          }
+        }
+        return null;
+      }
 
-            <bpmndi:BPMNEdge id="flow2_di" bpmnElement="flow2">
-              <di:waypoint x="490" y="138" />
-              <di:waypoint x="540" y="138" />
-            </bpmndi:BPMNEdge>
-          </bpmndi:BPMNPlane>
-        </bpmndi:BPMNDiagram>
-      </bpmn:definitions>`;
+      // (선택) 부동소수 약간의 미세 차이는 무시하고 싶다면
+      const WAYPOINT_EPS = 0.3; // px 허용 오차
+      function waypointDiff(left = [], right = [], eps = WAYPOINT_EPS) {
+        const diffs = [];
+        const maxLen = Math.max(left?.length || 0, right?.length || 0);
+        for (let i = 0; i < maxLen; i++) {
+          const L = left?.[i] || null;
+          const R = right?.[i] || null;
+          if (!L || !R) {
+            diffs.push({ index: i, left: L, right: R });
+            continue;
+          }
+          const dx = Math.abs(parseFloat(L.x) - parseFloat(R.x));
+          const dy = Math.abs(parseFloat(L.y) - parseFloat(R.y));
+          if (isNaN(dx) || isNaN(dy) || dx > eps || dy > eps) {
+            diffs.push({ index: i, left: L, right: R });
+          }
+        }
+        return diffs;
+      }
 
-        const APPROVAL_XML = `<?xml version="1.0" encoding="UTF-8"?>
-      <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                        xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
-                        xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
-                        xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
-                        id="Defs_Approval" targetNamespace="http://example.com/bpmn">
-        <bpmn:process id="ApprovalProcess" name="승인 프로세스" isExecutable="false">
-          <bpmn:startEvent id="Start_Appr" name="승인 시작" />
-          <bpmn:task id="Task_Request" name="승인 요청" />
-          <bpmn:userTask id="Task_Review" name="검토" />
-          <bpmn:exclusiveGateway id="Gw_Approved" name="승인 여부" />
-          <bpmn:task id="Task_Notify" name="결과 통보" />
-          <bpmn:endEvent id="End_Appr" name="종료" />
+      // ---- Utilities ----
+      const domParse = xml => new DOMParser().parseFromString(xml, 'application/xml');
+      const text = n => ((n && n.textContent) || '').trim();
+      const qsa = (root, sel) => Array.from(root.querySelectorAll(sel));
 
-          <bpmn:sequenceFlow id="a1" sourceRef="Start_Appr" targetRef="Task_Request" />
-          <bpmn:sequenceFlow id="a2" sourceRef="Task_Request" targetRef="Task_Review" />
-          <bpmn:sequenceFlow id="a3" sourceRef="Task_Review" targetRef="Gw_Approved" />
-          <bpmn:sequenceFlow id="a4" sourceRef="Gw_Approved" targetRef="Task_Notify" />
-          <bpmn:sequenceFlow id="a5" sourceRef="Task_Notify" targetRef="End_Appr" />
-        </bpmn:process>
+      // 수집할 주요 속성 키 (id 제외). 필요 시 추가
+      const CORE_ATTRS = [
+        'name',
+        'sourceRef',
+        'targetRef',
+        'default',
+        'calledElement',
+        'isForCompensation',
+        'completionQuantity',
+        'startQuantity',
+        'camunda:assignee',
+        'camunda:candidateUsers',
+        'camunda:candidateGroups',
+        'camunda:class',
+        'camunda:expression',
+        'camunda:decisionRef',
+        'camunda:topic',
+        'camunda:type',
+        'camunda:resultVariable',
+      ];
 
-        <bpmndi:BPMNDiagram id="BPMNDiagram_Approval">
-          <bpmndi:BPMNPlane id="BPMNPlane_Approval" bpmnElement="ApprovalProcess">
-            <bpmndi:BPMNShape id="Start_Appr_di" bpmnElement="Start_Appr">
-              <dc:Bounds x="130" y="120" width="36" height="36" />
-            </bpmndi:BPMNShape>
-            <bpmndi:BPMNShape id="Task_Request_di" bpmnElement="Task_Request">
-              <dc:Bounds x="210" y="100" width="130" height="80" />
-            </bpmndi:BPMNShape>
-            <bpmndi:BPMNShape id="Task_Review_di" bpmnElement="Task_Review">
-              <dc:Bounds x="360" y="100" width="130" height="80" />
-            </bpmndi:BPMNShape>
-            <bpmndi:BPMNShape id="Gw_Approved_di" bpmnElement="Gw_Approved" isMarkerVisible="true">
-              <dc:Bounds x="520" y="115" width="50" height="50" />
-            </bpmndi:BPMNShape>
-            <bpmndi:BPMNShape id="Task_Notify_di" bpmnElement="Task_Notify">
-              <dc:Bounds x="600" y="100" width="140" height="80" />
-            </bpmndi:BPMNShape>
-            <bpmndi:BPMNShape id="End_Appr_di" bpmnElement="End_Appr">
-              <dc:Bounds x="760" y="120" width="36" height="36" />
-            </bpmndi:BPMNShape>
+      // 이 노드들의 텍스트/하위값도 비교
+      const TEXT_NODES = [
+        'bpmn:documentation',
+        'bpmn:conditionExpression',
+        'bpmn:message',
+        'bpmn:signal',
+        'bpmn:script',
+      ];
 
-            <bpmndi:BPMNEdge id="a1_di" bpmnElement="a1"><di:waypoint x="166" y="138"/><di:waypoint x="210" y="140"/></bpmndi:BPMNEdge>
-            <bpmndi:BPMNEdge id="a2_di" bpmnElement="a2"><di:waypoint x="340" y="140"/><di:waypoint x="360" y="140"/></bpmndi:BPMNEdge>
-            <bpmndi:BPMNEdge id="a3_di" bpmnElement="a3"><di:waypoint x="490" y="140"/><di:waypoint x="520" y="140"/></bpmndi:BPMNEdge>
-            <bpmndi:BPMNEdge id="a4_di" bpmnElement="a4"><di:waypoint x="570" y="140"/><di:waypoint x="600" y="140"/></bpmndi:BPMNEdge>
-            <bpmndi:BPMNEdge id="a5_di" bpmnElement="a5"><di:waypoint x="740" y="140"/><di:waypoint x="760" y="138"/></bpmndi:BPMNEdge>
-          </bpmndi:BPMNPlane>
-        </bpmndi:BPMNDiagram>
-      </bpmn:definitions>`;
+      // ----- BPMN Model 준비 -----
+      const leftViewer = new BpmnNavigatedViewer({ container: '#viewer-left' });
+      const rightViewer = new BpmnNavigatedViewer({ container: '#viewer-right' });
 
-        // moddle 정의 로드
-        const camundaModdle = await fetch('./json/camundaModdle.json').then(r => r.json());
-        // ─────────────────────────────────────────────────────────────────────────────
-        // 2) 라우팅/매핑
-        // ─────────────────────────────────────────────────────────────────────────────
-        const PROCESS_REGISTRY = new Map([
-          ['MainProcess', MAIN_XML],
-          ['ApprovalProcess', APPROVAL_XML],
+      let leftXML = '';
+      let rightXML = '';
+
+      // 파일 입력
+      // document.getElementById('file-master').addEventListener('change', async e => {
+      //   const f = e.target.files[0];
+      //   if (!f) return;
+      //   leftXML = await f.text();
+      //   await leftViewer.importXML(leftXML);
+      //   leftViewer.get('canvas').zoom('fit-viewport', 'auto');
+      // });
+      // document.getElementById('file-mod').addEventListener('change', async e => {
+      //   const f = e.target.files[0];
+      //   if (!f) return;
+      //   rightXML = await f.text();
+      //   await rightViewer.importXML(rightXML);
+      //   rightViewer.get('canvas').zoom('fit-viewport', 'auto');
+      // });
+
+      // 샘플 로딩 (같은 폴더에 master.bpmn / modified.bpmn)
+      document.getElementById('btn-load-sample').addEventListener('click', async () => {
+        const [m, n] = await Promise.all([
+          fetch('./xml/diagram-master.xml')
+            .then(r => r.text())
+            .catch(() => ''),
+          fetch('./xml/diagram-modify.xml')
+            .then(r => r.text())
+            .catch(() => ''),
         ]);
-        // collapsed Sub-Process 요소 ID → 대상 processId
-        const SUBPROC_TO_PROCESS = new Map([['Sub_Approval', 'ApprovalProcess']]);
-
-        // 뒤로가기 스택
-        const historyStack = [];
-
-        // ─────────────────────────────────────────────────────────────────────────────
-        // 3) bpmn-js Modeler
-        // ─────────────────────────────────────────────────────────────────────────────
-        const modeler = new BpmnModeler({
-          container: '#canvas',
-          // (선택) Properties Panel을 함께 붙이기
-          propertiesPanel: {
-            parent: '#properties',
-          },
-          additionalModules: [
-            window.BpmnJSPropertiesPanel.BpmnPropertiesPanelModule,
-            window.BpmnJSPropertiesPanel.BpmnPropertiesProviderModule,
-            window.BpmnJSPropertiesPanel.CamundaPlatformPropertiesProviderModule,
-            window.BpmnJSPropertiesPanel.CamundaPlatformTooltipProvider,
-          ],
-          moddleExtensions: {
-            // camunda:Properties 사용을 위해 camunda moddle 등록
-            camunda: camundaModdle,
-          },
-        });
-
-        async function loadDiagramByProcessId(processId, pushHistory = true) {
-          const xml = PROCESS_REGISTRY.get(processId);
-          if (!xml) {
-            alert(`등록되지 않은 processId: ${processId}`);
-            return;
-          }
-          const current = await exportCurrentXMLSafe();
-          if (pushHistory && current) {
-            historyStack.push(current);
-            updateBackButton();
-          }
-          try {
-            await modeler.importXML(xml);
-            modeler.get('canvas').zoom('fit-viewport', 'auto');
-            installDrilldownOverlays(); // 다이어그램마다 bjs-drilldown 설치
-          } catch (err) {
-            console.error(err);
-            alert('다이어그램 로드 실패: ' + err.message);
-          }
+        if (!m || !n) {
+          alert('master.bpmn / modified.bpmn 파일을 폴더에 두거나, 파일 선택을 이용하세요.');
+          return;
         }
+        leftXML = m;
+        rightXML = n;
+        await leftViewer.importXML(leftXML);
+        await rightViewer.importXML(rightXML);
+        // leftViewer.get('canvas').zoom('fit-viewport', 'auto');
+        // rightViewer.get('canvas').zoom('fit-viewport', 'auto');
+      });
 
-        async function exportCurrentXMLSafe() {
-          try {
-            const { xml } = await modeler.saveXML({ format: true });
-            return xml;
-          } catch {
-            return null;
+      document.getElementById('btn-compare').addEventListener('click', () => runDiff());
+
+      // ---- Diff 핵심: XML -> 요소 맵 생성 ----
+      function buildIndex(xml, deep = false) {
+        const doc = domParse(xml);
+        const idx = new Map();
+        if (!doc || doc.querySelector('parsererror')) return idx;
+
+        // id 보유 요소 전부
+        const all = qsa(doc, '*').filter(n => n.hasAttribute('id'));
+        for (const el of all) {
+          const id = el.getAttribute('id');
+          const tag = el.tagName;
+
+          // 요소 타입(네임스페이스 제거)
+          const typeLocal = localNameOf(el); // ex) 'parallelGateway', 'inclusiveGateway'
+
+          // 속성 수집
+          const attrs = {};
+          for (const a of el.attributes) {
+            if (a.name === 'id') continue;
+            if (!deep && !CORE_ATTRS.includes(a.name)) continue;
+            attrs[a.name] = a.value;
           }
-        }
 
-        function updateBackButton() {
-          document.getElementById('btn-back').disabled = historyStack.length === 0;
-        }
+          // ✅ 텍스트/하위 중요 노드 (네임스페이스 안전 + textAnnotation 지원)
+          const texts = {};
+          if (deep) {
+            for (const local of TEXT_LOCAL_NAMES) {
+              const val = textByNS(el, BPMN_NS, local);
+              if (val) texts[local] = val;
+            }
+            // textAnnotation 의 본문 <bpmn:text>
+            if (el.namespaceURI === BPMN_NS && el.localName === 'textAnnotation') {
+              const anno = textByNS(el, BPMN_NS, 'text');
+              if (anno) texts['text'] = anno;
+            }
+          }
 
-        // ─────────────────────────────────────────────────────────────────────────────
-        // 4) collapsed Sub-Process에 bjs-drilldown 버튼 오버레이 설치
-        // ─────────────────────────────────────────────────────────────────────────────
-        function installDrilldownOverlays() {
-          const overlays = modeler.get('overlays');
-          const elementRegistry = modeler.get('elementRegistry');
-
-          overlays.clear();
-
-          elementRegistry.getAll().forEach(el => {
-            const bo = el.businessObject;
-            if (!bo || bo.$type !== 'bpmn:SubProcess') return;
-
-            // collapsed 인 경우만 drilldown 부착
-            if (el.isExpanded) return;
-
-            const targetProcess = SUBPROC_TO_PROCESS.get(el.id);
-            const btn = createDrilldownButton(bo.name || '하위 프로세스', () => {
-              if (!targetProcess || !PROCESS_REGISTRY.has(targetProcess)) {
-                alert(`Sub-Process 매핑이 없습니다: ${el.id}`);
-                return;
+          // ✅ camunda:properties (확장 속성) – 네임스페이스 안전
+          const extensions = [];
+          if (deep) {
+            const extEls = el.getElementsByTagNameNS(BPMN_NS, 'extensionElements');
+            for (const ext of extEls) {
+              const props = ext.getElementsByTagNameNS(CAMUNDA_NS, 'properties');
+              for (const p of props) {
+                const entries = p.getElementsByTagNameNS(CAMUNDA_NS, 'property');
+                for (const e of entries) {
+                  extensions.push({
+                    name: e.getAttribute('name') || '',
+                    value: e.getAttribute('value') || '',
+                  });
+                }
               }
-              // "바로 이동": 클릭 즉시 전환
-              loadDiagramByProcessId(targetProcess, true);
-            });
-
-            overlays.add(el, 'bjs-drilldown', {
-              position: { right: 0, top: 90 }, // 우상단
-              html: btn,
-            });
-          });
-        }
-
-        function createDrilldownButton(labelText, onClick) {
-          const node = document.createElement('div');
-          node.className = 'bjs-drilldown-wrapper';
-          // node.title = '하위 프로세스로 이동';
-
-          node.innerHTML =
-            '<button type="button" class="bjs-drilldown bjs-drilldown-empty" title="Open 승인 절차(하위 BPD)"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.81801948,3.50735931 L10.4996894,9.1896894 L10.5,4 L12,4 L12,12 L4,12 L4,10.5 L9.6896894,10.4996894 L3.75735931,4.56801948 C3.46446609,4.27512627 3.46446609,3.80025253 3.75735931,3.50735931 C4.05025253,3.21446609 4.52512627,3.21446609 4.81801948,3.50735931 Z"></path></svg></button>';
-          // const label = document.createElement('span');
-          // label.className = 'bjs-drilldown__label';
-          // label.textContent = labelText.length > 18 ? labelText.slice(0, 18) + '…' : labelText;
-
-          // const icon = document.createElement('span');
-          // icon.className = 'bjs-drilldown__icon';
-
-          // node.appendChild(label);
-          // node.appendChild(icon);
-
-          node.addEventListener('click', e => {
-            e.stopPropagation();
-            onClick();
-          });
-
-          return node;
-        }
-
-        // 다이어그램 변경 시에도 오버레이 유지
-        function setupLiveOverlayRefresh() {
-          const eventBus = modeler.get('eventBus');
-          eventBus.on(['shape.added', 'shape.removed', 'elements.changed'], () => {
-            clearTimeout(window.__overlayRefreshTimer);
-            window.__overlayRefreshTimer = setTimeout(installDrilldownOverlays, 50);
-          });
-        }
-
-        // ─────────────────────────────────────────────────────────────────────────────
-        // 5) 상단 버튼
-        // ─────────────────────────────────────────────────────────────────────────────
-        document
-          .getElementById('btn-main')
-          .addEventListener('click', () => loadDiagramByProcessId('MainProcess', true));
-        document
-          .getElementById('btn-child')
-          .addEventListener('click', () => loadDiagramByProcessId('ApprovalProcess', true));
-        document.getElementById('btn-back').addEventListener('click', async () => {
-          const prev = historyStack.pop();
-          updateBackButton();
-          if (prev) {
-            await modeler.importXML(prev);
-            modeler.get('canvas').zoom('fit-viewport', 'auto');
-            installDrilldownOverlays();
+            }
+            // (옵션) 커스텀 속성도 비교에 포함하려면 attrs에 주입
+            // if (el.hasAttribute('data-subproc-processId')) {
+            //   attrs['data-subproc-processId'] = el.getAttribute('data-subproc-processId');
+            // }
           }
+
+          // ✅ DI 수집: Bounds + Waypoints
+          let bounds = null,
+            waypoints = null;
+          if (deep) {
+            bounds = findBoundsForElementIdNS(doc, id); // 노드(Shape)
+            waypoints = findWaypointsForElementIdNS(doc, id); // 엣지(Edge)
+          }
+
+          idx.set(id, { id, tag, type: typeLocal, attrs, texts, extensions, bounds, waypoints });
+        }
+        return idx;
+      }
+
+      // ---- Diff 로직: 좌/우 인덱스 비교 ----
+      function diffIndices(leftIdx, rightIdx) {
+        const onlyLeft = [];
+        const onlyRight = [];
+        const changed = []; // { id, changes: { attrs:[], texts:[], extensions:[], bounds:[], waypoints:[] } }
+
+        const leftIds = new Set(leftIdx.keys());
+        const rightIds = new Set(rightIdx.keys());
+
+        for (const id of leftIds) if (!rightIds.has(id)) onlyLeft.push(id);
+        for (const id of rightIds) if (!leftIds.has(id)) onlyRight.push(id);
+
+        for (const id of leftIds) {
+          if (!rightIds.has(id)) continue;
+          const L = leftIdx.get(id),
+            R = rightIdx.get(id);
+          const changes = {
+            type: null,
+            attrs: [],
+            texts: [],
+            extensions: [],
+            bounds: [],
+            waypoints: [],
+          };
+
+          // 타입 비교 (예: parallelGateway → inclusiveGateway)
+          const lType = L.type || localNameOf({ tagName: L.tag });
+          const rType = R.type || localNameOf({ tagName: R.tag });
+          if (lType !== rType) {
+            changes.type = { left: lType, right: rType };
+          }
+
+          // 속성
+          const keys = new Set([...Object.keys(L.attrs), ...Object.keys(R.attrs)]);
+          for (const k of keys) {
+            const lv = L.attrs[k] ?? null;
+            const rv = R.attrs[k] ?? null;
+            if (lv !== rv) changes.attrs.push({ key: k, left: lv, right: rv });
+          }
+
+          // 텍스트
+          for (const k of new Set([...Object.keys(L.texts), ...Object.keys(R.texts)])) {
+            const lv = L.texts[k] ?? null,
+              rv = R.texts[k] ?? null;
+            if (lv !== rv) changes.texts.push({ key: k, left: lv, right: rv });
+          }
+
+          // 확장(camunda:properties)
+          const exKey = p => `${p.name}::${p.value}`;
+          const lset = new Set((L.extensions || []).map(exKey));
+          const rset = new Set((R.extensions || []).map(exKey));
+          const extDiffs = [];
+          for (const k of lset) if (!rset.has(k)) extDiffs.push({ type: 'removed', entry: k });
+          for (const k of rset) if (!lset.has(k)) extDiffs.push({ type: 'added', entry: k });
+          if (extDiffs.length) changes.extensions = extDiffs;
+
+          // Bounds
+          const lb = L.bounds,
+            rb = R.bounds;
+          if (lb || rb) {
+            const keysB = ['x', 'y', 'width', 'height'];
+            for (const k of keysB) {
+              const lv = lb ? lb[k] ?? null : null;
+              const rv = rb ? rb[k] ?? null : null;
+              if (lv !== rv) changes.bounds.push({ key: k, left: lv, right: rv });
+            }
+          }
+
+          // ✅ Waypoints
+          const wDiffs = waypointDiff(L.waypoints || [], R.waypoints || []);
+          if (wDiffs.length) changes.waypoints = wDiffs;
+
+          if (
+            changes.type ||
+            changes.attrs.length ||
+            changes.texts.length ||
+            changes.extensions.length ||
+            changes.bounds.length ||
+            changes.waypoints.length
+          ) {
+            changed.push({ id, changes, tag: L.tag });
+          }
+        }
+
+        return { onlyLeft, onlyRight, changed };
+      }
+
+      // ---- 하이라이트/오버레이 적용 ----
+      async function applyHighlights(viewer, mapping, type) {
+        const canvas = viewer.get('canvas');
+        const registry = viewer.get('elementRegistry');
+        const overlays = viewer.get('overlays');
+
+        // reset markers/overlays
+        registry.getAll().forEach(el => {
+          canvas.removeMarker(el, 'added');
+          canvas.removeMarker(el, 'removed');
+          canvas.removeMarker(el, 'changed');
+          overlays.remove({ element: el.id });
         });
 
-        // ─────────────────────────────────────────────────────────────────────────────
-        // 6) 초기화
-        // ─────────────────────────────────────────────────────────────────────────────
-        (async function bootstrap() {
-          await modeler.importXML(MAIN_XML);
-          modeler.get('canvas').zoom('fit-viewport', 'auto');
-          installDrilldownOverlays();
-          setupLiveOverlayRefresh();
-          updateBackButton();
-        })();
+        // 존재성 마커
+        for (const id of mapping.only) {
+          const el = registry.get(id);
+          if (!el) continue;
+
+          const isAdded = type === 'right'; // 우측 only => 추가 / 좌측 only => 삭제
+          canvas.addMarker(id, isAdded ? 'added' : 'removed');
+
+          const bo = el.businessObject || {};
+          const elemType = (bo.$type || el.type || 'Element').replace(/^bpmn:/, '') || 'Element';
+          const name = bo.name ? ` <span class="mono">(${escapeHtml(bo.name)})</span>` : '';
+
+          overlays.add(id, {
+            position: { top: 0, right: 0 },
+            html: `<div class="diff-overlay">${isAdded ? '요소추가' : '요소삭제'}: ${escapeHtml(
+              elemType,
+            )}${name}</div>`,
+          });
+        }
+
+        const trunc = (s, n = 40) => {
+          const t = s || '';
+          return escapeHtml(t.length > n ? t.slice(0, n) + '…' : t);
+        };
+        let ri = 0;
+        // 대문자 첫 글자 처리
+        const cap = s => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+        // 변경 마커 + 오버레이
+        for (const c of mapping.changed) {
+          if (!registry.get(c.id)) continue;
+          canvas.addMarker(c.id, 'changed');
+
+          const lines = [];
+          if (c.changes.type) {
+            lines.push(
+              `<b>타입변경</b>: <span class="mono">${cap(
+                escapeHtml(c.changes.type.left),
+              )}</span> → ` + `<span class="mono">${cap(escapeHtml(c.changes.type.right))}</span>`,
+            );
+          }
+          if (c.changes.attrs.length) {
+            lines.push(`<b>속성변경</b>`);
+            c.changes.attrs.slice(0, 8).forEach(a => {
+              const l = escapeHtml(a.left),
+                r = escapeHtml(a.right);
+              // lines.push(
+              //   `<div><span class="mono">${escapeHtml(
+              //     a.key,
+              //   )}</span>: </div><span class="mono">${l}</span> → <span class="mono">${r}</span>`,
+              // );
+              lines.push(`<span class="mono">${l}</span> → <span class="mono">${r}</span>`);
+            });
+            if (c.changes.attrs.length > 8) lines.push(`… (+${c.changes.attrs.length - 8})`);
+          }
+          if (c.changes.texts.length) {
+            lines.push(`<b>텍스트변경</b>`);
+            c.changes.texts.slice(0, 4).forEach(t => {
+              // lines.push(
+              //   `<div><span class="mono">${escapeHtml(t.key)}</span>: </div>` +
+              //     `<span class="mono">${trunc(t.left)}</span> → <span class="mono">${trunc(
+              //       t.right,
+              //     )}</span>`,
+              // );
+              lines.push(
+                `<span class="mono">${trunc(t.left)}</span> → <span class="mono">${trunc(
+                  t.right,
+                )}</span>`,
+              );
+            });
+            if (c.changes.texts.length > 4) lines.push(`… (+${c.changes.texts.length - 4})`);
+          }
+          if (c.changes.extensions.length) {
+            lines.push(`<b>확장변경</b>`);
+            c.changes.extensions.slice(0, 6).forEach(e => {
+              lines.push(
+                `${e.type === 'added' ? '＋' : '－'} <span class="mono">${escapeHtml(
+                  e.entry,
+                )}</span>`,
+              );
+            });
+            if (c.changes.extensions.length > 6)
+              lines.push(`… (+${c.changes.extensions.length - 6})`);
+          }
+          // if (c.changes.bounds.length) {
+          //   lines.push(`<b>DI(Bounds)</b>`);
+          //   c.changes.bounds.forEach(b => {
+          //     lines.push(
+          //       `<span class="mono">${b.key}</span>: <span class="mono">${b.left}</span> → <span class="mono">${b.right}</span>`,
+          //     );
+          //   });
+          // }
+          // if (c.changes.waypoints && c.changes.waypoints.length) {
+          //   lines.push(`<b>DI(waypoints)</b>`);
+          //   c.changes.waypoints.slice(0, 5).forEach(wp => {
+          //     const L = wp.left ? `(${escapeHtml(wp.left.x)}, ${escapeHtml(wp.left.y)})` : '—';
+          //     const R = wp.right ? `(${escapeHtml(wp.right.x)}, ${escapeHtml(wp.right.y)})` : '—';
+          //     lines.push(
+          //       `#${wp.index}: <span class="mono">${L}</span> → <span class="mono">${R}</span>`,
+          //     );
+          //   });
+          //   const rest = c.changes.waypoints.length - 5;
+          //   if (rest > 0) lines.push(`… (+${rest})`);
+          // }
+          if (lines.length) {
+            overlays.add(c.id, {
+              position: { top: 0, right: 0 },
+              html: `<div class="diff-overlay">${lines.join('<br/>')}</div>`,
+            });
+            ri++;
+          }
+        }
+      }
+
+      function escapeHtml(s) {
+        if (s === null || s === undefined) return '';
+        return String(s).replace(
+          /[&<>"']/g,
+          m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]),
+        );
+      }
+
+      async function runDiff() {
+        if (!leftXML || !rightXML) {
+          alert('먼저 좌/우 BPMN XML을 로드하세요.');
+          return;
+        }
+        // const deep = document.getElementById('chk-deep').checked;
+
+        const leftIdx = buildIndex(leftXML, true);
+        const rightIdx = buildIndex(rightXML, true);
+
+        const { onlyLeft, onlyRight, changed } = diffIndices(leftIdx, rightIdx);
+
+        // 좌측: 삭제(red), 변경(amber)
+        await applyHighlights(leftViewer, { only: onlyLeft, changed }, 'left');
+        // 우측: 추가(green), 변경(amber)
+        await applyHighlights(rightViewer, { only: onlyRight, changed }, 'right');
+
+        // syncClicks(leftViewer, rightViewer);
+        // syncClicks(rightViewer, leftViewer);
+      }
+
+      // ---- 좌우 동기 클릭/줌 ----
+      // function syncClicks(srcViewer, dstViewer) {
+      //   const srcBus = srcViewer.get('eventBus');
+      //   const dstReg = dstViewer.get('elementRegistry');
+      //   const dstCanvas = dstViewer.get('canvas');
+
+      //   srcBus.off('element.click', onClick); // 중복 방지
+      //   srcBus.on('element.click', onClick);
+
+      //   function onClick(e) {
+      //     const id = e.element && e.element.id;
+      //     if (!id) return;
+      //     const target = dstReg.get(id);
+      //     if (!target) return;
+      //     dstCanvas.scrollToElement(target);
+      //     dstCanvas.zoom('fit-viewport', 'auto');
+      //     setTimeout(() => dstCanvas.addMarker(id, 'changed'), 0);
+      //     setTimeout(() => dstCanvas.removeMarker(id, 'changed'), 900);
+      //   }
+      // }
+
+      // 초기 빈 캔버스
+      (async () => {
+        const blank = `<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
+  targetNamespace="Examples">
+  <process id="Empty" isExecutable="false"/>
+  <bpmndi:BPMNDiagram><bpmndi:BPMNPlane bpmnElement="Empty"/></bpmndi:BPMNDiagram>
+</definitions>`;
+        leftXML = blank;
+        rightXML = blank;
+        await leftViewer.importXML(blank);
+        await rightViewer.importXML(blank);
+        // leftViewer.get('canvas').zoom('fit-viewport', 'auto');
+        // rightViewer.get('canvas').zoom('fit-viewport', 'auto');
       })();
     </script>
   </body>
