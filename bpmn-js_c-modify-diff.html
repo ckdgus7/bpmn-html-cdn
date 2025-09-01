@@ -348,7 +348,7 @@
             attrs[a.name] = a.value;
           }
 
-          // ✅ 텍스트/하위 중요 노드 (네임스페이스 안전 + textAnnotation 지원)
+          // 텍스트/하위 중요 노드 (네임스페이스 안전 + textAnnotation 지원)
           const texts = {};
           if (deep) {
             for (const local of TEXT_LOCAL_NAMES) {
@@ -362,7 +362,7 @@
             }
           }
 
-          // ✅ camunda:properties (확장 속성) – 네임스페이스 안전
+          // camunda:properties (확장 속성) – 네임스페이스 안전
           const extensions = [];
           if (deep) {
             const extEls = el.getElementsByTagNameNS(BPMN_NS, 'extensionElements');
@@ -384,7 +384,7 @@
             // }
           }
 
-          // ✅ DI 수집: Bounds + Waypoints
+          // DI 수집: Bounds + Waypoints
           // let bounds = null,
           //   waypoints = null;
           // if (deep) {
@@ -466,7 +466,7 @@
           //   }
           // }
 
-          // ✅ Waypoints
+          // Waypoints
           // const wDiffs = waypointDiff(L.waypoints || [], R.waypoints || []);
           // if (wDiffs.length) changes.waypoints = wDiffs;
 
@@ -524,8 +524,6 @@
           return escapeHtml(t.length > n ? t.slice(0, n) + '…' : t);
         };
         let ri = 0;
-        // 대문자 첫 글자 처리
-        const cap = s => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
         // 변경 마커 + 오버레이
         for (const c of mapping.changed) {
           if (!registry.get(c.id)) continue;

@@ -221,3 +221,110 @@ function createDiagrams(params) {
   }
   initDiagram();
 }
+function extractBaseRenderer(bpmnRenderer) {
+  let BaseRenderer = null;
+  if (!BaseRenderer) {
+    // bpmnRenderer → BpmnRenderer → BaseRenderer → Object
+    BaseRenderer = Object.getPrototypeOf(Object.getPrototypeOf(bpmnRenderer)).constructor;
+  }
+  return BaseRenderer;
+}
+function isNil(value) {
+  return value === null || value === undefined;
+}
+
+function svgCreate(name) {
+  return document.createElementNS('http://www.w3.org/2000/svg', name);
+}
+
+function svgAttr(el, attrs) {
+  for (const name in attrs) {
+    el.setAttribute(name, attrs[name]);
+  }
+}
+
+function svgAppend(parent, child) {
+  parent.appendChild(child);
+}
+
+function svgClasses(el) {
+  return {
+    add: cls => el.classList.add(cls),
+    remove: cls => el.classList.remove(cls),
+  };
+}
+
+function getBusinessObject(element) {
+  return element.businessObject || element;
+}
+
+function getExtensionElement(businessObject, type) {
+  if (!businessObject.extensionElements) {
+    return null;
+  }
+
+  return businessObject.extensionElements.values.filter(extensionElement => {
+    return extensionElement.$instanceOf(type);
+  })[0];
+}
+// 전역 이벤트 핸들러
+function updateCustomAttr(bpmnModeler, input, attrName) {
+  const element = bpmnModeler.get('selection').get()[0];
+  if (!element) return;
+
+  const modeling = bpmnModeler.get('modeling');
+  const bo = element.businessObject;
+
+  // $attrs에 custom 속성 설정
+  bo.$attrs = {
+    ...bo.$attrs,
+    [attrName]: input.value,
+  };
+
+  // 트리거용 빈 update (실제 속성 갱신은 위에서 처리)
+  modeling.updateProperties(element, {});
+}
+
+function drawRect(parentNode, width, height, borderRadius, color) {
+  const rect = svgCreate('rect');
+
+  svgAttr(rect, {
+    width: width,
+    height: height,
+    rx: borderRadius,
+    ry: borderRadius,
+    stroke: color,
+    strokeWidth: 2,
+    fill: color,
+  });
+
+  svgAppend(parentNode, rect);
+
+  return rect;
+}
+
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function escapeHtml(s) {
+  if (s === null || s === undefined) return '';
+  return String(s).replace(
+    /[&<>"']/g,
+    m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]),
+  );
+}
+
+// 태그에서 네임스페이스 접두어 제거한 로컬네임 구하기
+const localNameOf = node =>
+  node?.localName ||
+  ((node?.tagName || '').includes(':') ? node.tagName.split(':')[1] : node?.tagName || '');
+
+// 네임스페이스 안전 텍스트 추출
+const textByNS = (node, ns, local) => {
+  const list = node.getElementsByTagNameNS(ns, local);
+  return list && list.length ? (list[0].textContent || '').trim() : '';
+};
+
+// 대문자 첫 글자 처리
+const cap = s => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
