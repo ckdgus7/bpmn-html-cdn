@@ -269,15 +269,6 @@
         'camunda:resultVariable',
       ];
 
-      // 이 노드들의 텍스트/하위값도 비교
-      const TEXT_NODES = [
-        'bpmn:documentation',
-        'bpmn:conditionExpression',
-        'bpmn:message',
-        'bpmn:signal',
-        'bpmn:script',
-      ];
-
       // ----- BPMN Model 준비 -----
       const leftViewer = new BpmnNavigatedViewer({ container: '#viewer-left' });
       const rightViewer = new BpmnNavigatedViewer({ container: '#viewer-right' });
@@ -291,14 +282,14 @@
       //   if (!f) return;
       //   leftXML = await f.text();
       //   await leftViewer.importXML(leftXML);
-      //   leftViewer.get('canvas').zoom('fit-viewport', 'auto');
+      //   setCanvasViewPortAuto(leftViewer.get('canvas'));
       // });
       // document.getElementById('file-mod').addEventListener('change', async e => {
       //   const f = e.target.files[0];
       //   if (!f) return;
       //   rightXML = await f.text();
       //   await rightViewer.importXML(rightXML);
-      //   rightViewer.get('canvas').zoom('fit-viewport', 'auto');
+      //   setCanvasViewPortAuto(rightViewer.get('canvas'));
       // });
 
       // 샘플 로딩 (같은 폴더에 master.bpmn / modified.bpmn)
@@ -319,8 +310,8 @@
         rightXML = n;
         await leftViewer.importXML(leftXML);
         await rightViewer.importXML(rightXML);
-        // leftViewer.get('canvas').zoom('fit-viewport', 'auto');
-        // rightViewer.get('canvas').zoom('fit-viewport', 'auto');
+        // setCanvasViewPortAuto(leftViewer.get('canvas'));
+        // setCanvasViewPortAuto(rightViewer.get('canvas'));
       });
 
       document.getElementById('btn-compare').addEventListener('click', () => runDiff());
@@ -643,7 +634,7 @@
       //     const target = dstReg.get(id);
       //     if (!target) return;
       //     dstCanvas.scrollToElement(target);
-      //     dstCanvas.zoom('fit-viewport', 'auto');
+      //     setCanvasViewPortAuto(dstCanvas);
       //     setTimeout(() => dstCanvas.addMarker(id, 'changed'), 0);
       //     setTimeout(() => dstCanvas.removeMarker(id, 'changed'), 900);
       //   }
@@ -651,19 +642,13 @@
 
       // 초기 빈 캔버스
       (async () => {
-        const blank = `<?xml version="1.0" encoding="UTF-8"?>
-<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
-  targetNamespace="Examples">
-  <process id="Empty" isExecutable="false"/>
-  <bpmndi:BPMNDiagram><bpmndi:BPMNPlane bpmnElement="Empty"/></bpmndi:BPMNDiagram>
-</definitions>`;
+        const blank = await fetch('./xml/blank.xml');
         leftXML = blank;
         rightXML = blank;
         await leftViewer.importXML(blank);
         await rightViewer.importXML(blank);
-        // leftViewer.get('canvas').zoom('fit-viewport', 'auto');
-        // rightViewer.get('canvas').zoom('fit-viewport', 'auto');
+        // setCanvasViewPortAuto(leftViewer.get('canvas'));
+        // setCanvasViewPortAuto(rightViewer.get('canvas'));
       })();
     </script>
   </body>

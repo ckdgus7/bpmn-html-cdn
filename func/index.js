@@ -328,3 +328,8 @@ const textByNS = (node, ns, local) => {
 
 // 대문자 첫 글자 처리
 const cap = s => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+
+// 화면 중앙 배치
+function setCanvasViewPortAuto(canvas) {
+  canvas.zoom('fit-viewport', 'auto');
+}
