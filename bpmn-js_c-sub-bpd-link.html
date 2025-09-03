@@ -55,12 +55,7 @@
         cursor: not-allowed;
       }
       .overlay-btn {
-        background: #111827;
-        color: #fff;
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-size: 12px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        background-color: rgb(94, 248, 77);
         user-select: none;
         cursor: pointer;
       }
@@ -2129,14 +2124,23 @@
           },
         });
 
-        // 다이어그램 히스토리 (뒤로가기용)
+        /* 뒤로가기 */
+        // 다이어그램 히스토리
         const historyStack = [];
-
-        // 현재 XML을 가져오는 함수
-        async function getCurrentXML() {
-          const { xml } = await modeler.saveXML({ format: true });
-          return xml;
+        // 버튼 이벤트
+        document.getElementById('btnBack').onclick = async () => {
+          if (!historyStack.length) return;
+          const prevXML = historyStack.pop();
+          await modeler.importXML(prevXML);
+          fitViewport();
+          installSubOverlays();
+          updateBackButton();
+        };
+        // btn disabled 처리
+        function updateBackButton() {
+          document.getElementById('btnBack').disabled = historyStack.length === 0;
         }
+        /* 뒤로가기 */
 
         // 다이어그램 로더 (스택 처리 + 오버레이 재설치)
         async function loadDiagramByKey(key, pushHistory = true) {
@@ -2153,17 +2157,17 @@
               historyStack.push(currentXML);
             }
           }
-
           await modeler.importXML(xml);
           fitViewport();
           installSubOverlays();
           updateBackButton();
         }
-
-        function updateBackButton() {
-          document.getElementById('btnBack').disabled = historyStack.length === 0;
+        // 현재 XML을 가져오는 함수
+        async function getCurrentXML() {
+          const { xml } = await modeler.saveXML({ format: true });
+          return xml;
         }
-
+        // BPD 중앙정렬 및 크기조정
         function fitViewport() {
           // const canvas = modeler.get('canvas');
           // canvas.zoom('fit-viewport', 'auto');
@@ -2201,7 +2205,7 @@
             // console.log(el.isExpanded);
             if (el.isExpanded) return;
 
-            const label = (bo.name || '하위 프로세스').slice(0, 18);
+            const label = bo.name ? bo.name + '(하위 BPD)' : '(하위 BPD)';
             const subKey = readSubKey(el);
             // console.log(subKey);
             if (subKey) {
@@ -2210,8 +2214,7 @@
                 html: (() => {
                   const btn = document.createElement('div');
                   btn.className = 'bjs-drilldown-wrapper';
-                  btn.innerHTML =
-                    '<button type="button" class="bjs-drilldown bjs-drilldown-empty" title="Open 승인 절차(하위 BPD)"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.81801948,3.50735931 L10.4996894,9.1896894 L10.5,4 L12,4 L12,12 L4,12 L4,10.5 L9.6896894,10.4996894 L3.75735931,4.56801948 C3.46446609,4.27512627 3.46446609,3.80025253 3.75735931,3.50735931 C4.05025253,3.21446609 4.52512627,3.21446609 4.81801948,3.50735931 Z"></path></svg></button>';
+                  btn.innerHTML = `<button type="button" class="bjs-drilldown bjs-drilldown-empty overlay-btn" title="${label}"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.81801948,3.50735931 L10.4996894,9.1896894 L10.5,4 L12,4 L12,12 L4,12 L4,10.5 L9.6896894,10.4996894 L3.75735931,4.56801948 C3.46446609,4.27512627 3.46446609,3.80025253 3.75735931,3.50735931 C4.05025253,3.21446609 4.52512627,3.21446609 4.81801948,3.50735931 Z"></path></svg></button>`;
                   btn.onclick = () => loadDiagramByKey(subKey, true);
                   return btn;
                 })(),
@@ -2220,19 +2223,7 @@
           });
         }
 
-        // 초기 로드
-        loadDiagramByKey('root', false);
-
-        // 버튼 이벤트
-        document.getElementById('btnBack').onclick = async () => {
-          if (!historyStack.length) return;
-          const prevXML = historyStack.pop();
-          await modeler.importXML(prevXML);
-          fitViewport();
-          installSubOverlays();
-          updateBackButton();
-        };
-
+        // 내보내기 버튼 클릭
         document.getElementById('btnExport').onclick = async () => {
           const xml = await getCurrentXML();
           const blob = new Blob([xml], { type: 'application/xml' });
@@ -2251,6 +2242,9 @@
         modeler.on('commandStack.changed', () => {
           installSubOverlays();
         });
+
+        // 초기 로드
+        loadDiagramByKey('root', false);
       })();
     </script>
   </body>

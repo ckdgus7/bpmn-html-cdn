@@ -11,6 +11,14 @@
     <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/bpmn-embedded.css" />
     <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/properties-panel.css" />
     <style>
+      :root {
+        --diff-stroke-w: 3; /* 점선 두께 */
+        --diff-dash-dotted: 1.5 5; /* 도트 느낌 (짧은 선, 긴 간격) */
+        --diff-dash-dashed: 6 4; /* 일반 점선 */
+        --diff-color-added: #10b981; /* added (green)  */
+        --diff-color-removed: #ef4444; /* removed (red)   */
+        --diff-color-changed: #490bf5; /* changed (purple) */
+      }
       body {
         margin: 0;
         font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
@@ -82,20 +90,41 @@
         background: #490bf5;
       } /* changed -> amber */
 
-      /* Marker styles for bpmn-js */
-      .added .djs-visual > :is(rect, circle, polygon, path) {
-        stroke: #10b981 !important;
-        stroke-width: 3px !important;
-      }
-      .removed .djs-visual > :is(rect, circle, polygon, path) {
-        stroke: #ef4444 !important;
-        stroke-width: 3px !important;
-      }
+      /* 공통: 모든 하이라이트 요소의 stroke를 점선으로 */
+      .added .djs-visual > :is(rect, circle, polygon, path),
+      .removed .djs-visual > :is(rect, circle, polygon, path),
       .changed .djs-visual > :is(rect, circle, polygon, path) {
-        stroke: #490bf5 !important;
-        stroke-width: 3px !important;
+        fill: none; /* 내부 채움은 유지하고 싶다면 주석처리 */
+        stroke-width: var(--diff-stroke-w) !important;
+        stroke-linecap: round; /* 도트 느낌 */
+        vector-effect: non-scaling-stroke; /* 줌 배율과 무관하게 두께 고정 */
       }
 
+      /* 상태별 색상 + 패턴(모두 '점선' 계열) */
+      .added .djs-visual > :is(rect, circle, polygon, path) {
+        stroke: var(--diff-color-added) !important;
+        stroke-dasharray: var(--diff-dash-dotted); /* 더 도트 느낌 */
+      }
+
+      .removed .djs-visual > :is(rect, circle, polygon, path) {
+        stroke: var(--diff-color-removed) !important;
+        stroke-dasharray: var(--diff-dash-dotted);
+      }
+
+      .changed .djs-visual > :is(rect, circle, polygon, path) {
+        stroke: var(--diff-color-changed) !important;
+        stroke-dasharray: var(--diff-dash-dotted); /* 변경은 약간 더 긴 점선 */
+      }
+      @keyframes dash-march {
+        to {
+          stroke-dashoffset: -20;
+        }
+      }
+      .added .djs-visual > :is(rect, circle, polygon, path),
+      .removed .djs-visual > :is(rect, circle, polygon, path),
+      .changed .djs-visual > :is(rect, circle, polygon, path) {
+        animation: dash-march 1.6s linear infinite;
+      }
       /* Overlay bubble */
       .diff-overlay {
         font-size: 11px;
