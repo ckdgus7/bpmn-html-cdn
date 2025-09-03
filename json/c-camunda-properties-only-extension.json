@@ -1,0 +1,21 @@
+{
+  "name": "QA",
+  "uri": "http://some-company/schema/bpmn/qa",
+  "prefix": "qa",
+  "xml": {
+    "tagAlias": "lowerCase"
+  },
+  "types": [
+    {
+      "name": "AnalyzedNode",
+      "extends": ["bpmn:Task", "bpmn:ServiceTask", "bpmn:BusinessRuleTask", "bpmn:ManualTask", "bpmn:UserTask", "bpmn:ReceiveTask", "bpmn:SendTask", "bpmn:ScriptTask"],
+      "properties": [
+        {
+          "name": "suitable",
+          "isAttr": true,
+          "type": "String"
+        }
+      ]
+    }
+  ]
+}

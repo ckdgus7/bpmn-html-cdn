@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:qa="http://some-company/schema/bpmn/qa" targetNamespace="" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL http://www.omg.org/spec/BPMN/2.0/20100501/BPMN20.xsd">
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" targetNamespace="" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL http://www.omg.org/spec/BPMN/2.0/20100501/BPMN20.xsd">
   <collaboration id="sid-c0e745ff-361e-4afb-8c8d-2a1fc32b1424">
     <participant id="sid-87F4C1D6-25E1-4A45-9DA7-AD945993D06F" name="Customer" processRef="sid-C3803939-0872-457F-8336-EAE484DC4A04" />
   </collaboration>
   <process id="sid-C3803939-0872-457F-8336-EAE484DC4A04" name="Customer" processType="None" isClosed="false" isExecutable="false">
-    <extensionElements />
     <laneSet id="sid-b167d0d7-e761-4636-9200-76b7f0e8e83a">
       <lane id="sid-57E4FE0D-18E4-478D-BC5D-B15164E93254">
         <flowNodeRef>sid-52EB1772-F36E-433E-8F5B-D5DFD26E6F26</flowNodeRef>
@@ -15,21 +14,11 @@
         <flowNodeRef>SCAN_OK</flowNodeRef>
       </lane>
     </laneSet>
-    <task id="sid-52EB1772-F36E-433E-8F5B-D5DFD26E6F26" name="Scan QR code" qa:suitable="">
-      <extensionElements>
-        <qa:commentDetails lastChecked="2025-08-12T06:28:44.212Z">
-          <qa:comment pageName="" etc1=""></qa:comment>
-        </qa:commentDetails>
-      </extensionElements>
+    <task id="sid-52EB1772-F36E-433E-8F5B-D5DFD26E6F26" name="Scan QR code">
       <incoming>sid-4DC479E5-5C20-4948-BCFC-9EC5E2F66D8D</incoming>
       <outgoing>sid-EE8A7BA0-5D66-4F8B-80E3-CC2751B3856A</outgoing>
     </task>
-    <task id="sid-E49425CF-8287-4798-B622-D2A7D78EF00B" name="Open product information in mobile  app" qa:suitable="">
-      <extensionElements>
-        <qa:commentDetails lastChecked="2025-08-12T06:28:52.135Z">
-          <qa:comment pageName="" etc1=""></qa:comment>
-        </qa:commentDetails>
-      </extensionElements>
+    <task id="sid-E49425CF-8287-4798-B622-D2A7D78EF00B" name="Open product information in mobile  app">
       <incoming>sid-8B820AF5-DC5C-4618-B854-E08B71FB55CB</incoming>
       <outgoing>sid-57EB1F24-BD94-479A-BF1F-57F1EAA19C6C</outgoing>
     </task>
