@@ -625,7 +625,7 @@
               spaceTool,
             } = this;
             let returnVal = {
-              // 🔧 Activate group: 기본 도구들
+              // Activate group: 기본 도구들
               'hand-tool': {
                 group: 'tools',
                 className: 'bpmn-icon-hand-tool',
@@ -673,70 +673,6 @@
             };
             returnVal = {
               ...returnVal,
-              'create.startEvent': {
-                group: 'model',
-                className: 'bpmn-icon-start-event-none',
-                title: 'Create StartEvent',
-                action: {
-                  dragstart: event => {
-                    const shape = elementFactory.createShape({ type: 'bpmn:StartEvent' });
-                    create.start(event, shape);
-                  },
-                  click: event => {
-                    const shape = elementFactory.createShape({ type: 'bpmn:StartEvent' });
-                    create.start(event, shape);
-                  },
-                },
-              },
-              'create.intermediateThrowEvent': {
-                group: 'model',
-                className: 'bpmn-icon-intermediate-event-none',
-                title: 'Create IntermediateThrowEvent',
-                action: {
-                  dragstart: event => {
-                    const shape = elementFactory.createShape({
-                      type: 'bpmn:IntermediateThrowEvent',
-                    });
-                    create.start(event, shape);
-                  },
-                  click: event => {
-                    const shape = elementFactory.createShape({
-                      type: 'bpmn:IntermediateThrowEvent',
-                    });
-                    create.start(event, shape);
-                  },
-                },
-              },
-              'create.endEvent': {
-                group: 'model',
-                className: 'bpmn-icon-end-event-none',
-                title: 'Create EndEvent',
-                action: {
-                  dragstart: event => {
-                    const shape = elementFactory.createShape({ type: 'bpmn:EndEvent' });
-                    create.start(event, shape);
-                  },
-                  click: event => {
-                    const shape = elementFactory.createShape({ type: 'bpmn:EndEvent' });
-                    create.start(event, shape);
-                  },
-                },
-              },
-              'create.exclusiveGateway': {
-                group: 'model',
-                className: 'bpmn-icon-gateway-xor',
-                title: 'Create ExclusiveGateway',
-                action: {
-                  dragstart: event => {
-                    const shape = elementFactory.createShape({ type: 'bpmn:ExclusiveGateway' });
-                    create.start(event, shape);
-                  },
-                  click: event => {
-                    const shape = elementFactory.createShape({ type: 'bpmn:ExclusiveGateway' });
-                    create.start(event, shape);
-                  },
-                },
-              },
             };
 
             return returnVal;
@@ -778,7 +714,7 @@
               popupMenu,
             } = this;
             let returnVal = {
-              // 🔧 Activate group: 기본 도구들
+              // Activate group: 기본 도구들
               connect: {
                 group: 'tools',
                 className: 'bpmn-icon-connection-multi',
@@ -806,33 +742,10 @@
         }
 
         const CustomModule = {
-          __init__: ['customPaletteProvider'],
-          paletteProvider: ['value', null], // <-- 기본 palette 제거!
-          contextPadProvider: ['value', null], // <-- 기본 ContextPad 제거!
-          customPaletteProvider: [
-            'type',
-            function (
-              palette,
-              create,
-              elementFactory,
-              translate,
-              globalConnect,
-              handTool,
-              lassoTool,
-              spaceTool,
-            ) {
-              return new CustomPaletteProvider(
-                palette,
-                create,
-                elementFactory,
-                translate,
-                globalConnect,
-                handTool,
-                lassoTool,
-                spaceTool,
-              );
-            },
-          ],
+          // __init__: ['customPaletteProvider'],
+          // paletteProvider: ['value', null], // <-- 기본 palette 제거!
+          // contextPadProvider: ['value', null], // <-- 기본 ContextPad 제거!
+          // customPaletteProvider: ['type', CustomPaletteProvider],
         };
         const camundaModdle = await fetch('./json/camundaModdle.json').then(response =>
           response.json(),
@@ -945,40 +858,40 @@
               document.querySelectorAll('.popup-l4').forEach(item => {
                 item.addEventListener('click', e => {
                   e.preventDefault();
-                  // console.log(e)
-                  // const type = e.target.dataset.type;
-                  // const role = e.target.dataset.role;
-                  // const id = e.target.dataset.id + new Date().getTime();
-                  // const name = e.target.dataset.name;
-                  // const label = e.target.dataset.label;
-                  // if (!type) return;
+                  console.log(e);
+                  const type = e.target.dataset.type;
+                  const role = e.target.dataset.role;
+                  const id = e.target.dataset.id + new Date().getTime();
+                  const name = e.target.dataset.name;
+                  const label = e.target.dataset.label;
+                  if (!type) return;
 
-                  // const canvas = bpmnModeler.get('canvas');
-                  // const modeling = bpmnModeler.get('modeling');
-                  // const moddle = bpmnModeler.get('moddle');
-                  // const elementFactory = bpmnModeler.get('elementFactory');
-                  // const selection = bpmnModeler.get('selection');
+                  const canvas = bpmnModeler.get('canvas');
+                  const modeling = bpmnModeler.get('modeling');
+                  const moddle = bpmnModeler.get('moddle');
+                  const elementFactory = bpmnModeler.get('elementFactory');
+                  const selection = bpmnModeler.get('selection');
 
-                  // const rect = canvasContainer.getBoundingClientRect();
-                  // const position = {
-                  //   x: e.clientX - rect.left,
-                  //   y: e.clientY - rect.top
-                  // };
+                  const rect = canvasContainer.getBoundingClientRect();
+                  const position = {
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top,
+                  };
 
-                  // // 4. businessObject 구성
-                  // const businessObject = moddle.create(type, {
-                  //   id,
-                  //   name,
-                  // });
+                  // 4. businessObject 구성
+                  const businessObject = moddle.create(type, {
+                    id,
+                    name,
+                  });
 
-                  // const shape = elementFactory.createShape({
-                  //   type,
-                  //   businessObject
-                  // });
-                  // shape.businessObject.role = role;
+                  const shape = elementFactory.createShape({
+                    type,
+                    businessObject,
+                  });
+                  shape.businessObject.role = role;
 
-                  // modeling.createShape(shape, position, canvas.getRootElement());
-                  // selection.select(shape); // 겍체 선택
+                  modeling.createShape(shape, position, canvas.getRootElement());
+                  selection.select(shape); // 겍체 선택
                   document.getElementById('database').classList.remove('hidden');
                   closeBtnEl.click(); // 팝업 닫기
                 });
@@ -1181,37 +1094,37 @@
 
               createBtn.addEventListener('click', e => {
                 e.preventDefault();
-                // console.log(e)
-                // const type = 'bpmn:Task';
-                // const id = 'new_' + new Date().getTime();
-                // const name = document.getElementById('l4Name').value;
-                // const label = document.getElementById('l4Name').value;
+                console.log(e);
+                const type = 'bpmn:Task';
+                const id = 'new_' + new Date().getTime();
+                const name = document.getElementById('l4Name').value;
+                const label = document.getElementById('l4Name').value;
 
-                // const canvas = bpmnModeler.get('canvas');
-                // const modeling = bpmnModeler.get('modeling');
-                // const moddle = bpmnModeler.get('moddle');
-                // const elementFactory = bpmnModeler.get('elementFactory');
-                // const selection = bpmnModeler.get('selection');
+                const canvas = bpmnModeler.get('canvas');
+                const modeling = bpmnModeler.get('modeling');
+                const moddle = bpmnModeler.get('moddle');
+                const elementFactory = bpmnModeler.get('elementFactory');
+                const selection = bpmnModeler.get('selection');
 
-                // const rect = canvasContainer.getBoundingClientRect();
-                // const position = {
-                //   x: e.clientX - rect.left,
-                //   y: e.clientY - rect.top
-                // };
+                const rect = canvasContainer.getBoundingClientRect();
+                const position = {
+                  x: e.clientX - rect.left,
+                  y: e.clientY - rect.top,
+                };
 
-                // // 4. businessObject 구성
-                // const businessObject = moddle.create(type, {
-                //   id,
-                //   name,
-                // });
+                // 4. businessObject 구성
+                const businessObject = moddle.create(type, {
+                  id,
+                  name,
+                });
 
-                // const shape = elementFactory.createShape({
-                //   type,
-                //   businessObject
-                // });
+                const shape = elementFactory.createShape({
+                  type,
+                  businessObject,
+                });
 
-                // modeling.createShape(shape, position, canvas.getRootElement());
-                // selection.select(shape); // 겍체 선택
+                modeling.createShape(shape, position, canvas.getRootElement());
+                selection.select(shape); // 겍체 선택
 
                 document.getElementById('frontend').classList.remove('hidden');
                 closeBtn2El.click(); // 팝업 닫기
