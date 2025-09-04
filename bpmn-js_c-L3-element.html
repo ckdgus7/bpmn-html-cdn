@@ -1,119 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <title>L4 객체 선택</title>
 
     <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-<!-- Optional theme -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css"
+      integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+      crossorigin="anonymous"
+    />
+    <!-- Optional theme -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap-theme.min.css"
+      integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp"
+      crossorigin="anonymous"
+    />
 
     <link rel="stylesheet" href="./vendor/bpmn-js/assets/diagram-js.css" />
     <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/bpmn-embedded.css" />
-  <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/properties-panel.css" />
+    <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/properties-panel.css" />
     <link rel="stylesheet" href="./vendor/bpmn-js/assets/bpmn-font/css/custom.css" />
 
     <script src="./vendor/bpmn-js/assets/bpmn-modeler-v18.6.2.js"></script>
-  <!-- Properties Panel -->
-  <script src="./vendor/bpmn-js/assets/bpmn-js-properties-panel-v5.30.0.js"></script>
-  <script src="./func/index.js"></script>
-<style>
+    <!-- Properties Panel -->
+    <script src="./vendor/bpmn-js/assets/bpmn-js-properties-panel-v5.30.0.js"></script>
+    <script src="./func/index.js"></script>
+    <style>
+      body {
+        margin: 0;
+        font-family: sans-serif;
+        display: flex;
+      }
 
-    body { margin: 0; font-family: sans-serif; display: flex; }
+      #canvas {
+        flex: 1;
+        width: 55vw;
+        height: 100vh;
+        border: 1px solid #ccc;
+      }
+      #toolbox {
+        width: 190px;
+        background: #f5f5f5;
+        padding: 10px;
+        border-right: 1px solid #ccc;
+      }
+      #toolbox2 {
+        width: 175px;
+        background: #f5f5f5;
+        padding: 10px;
+        border-right: 1px solid #ccc;
+      }
+      .tool-item {
+        width: 155px;
+        height: 40px;
+        margin: 10px auto;
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: grab;
+      }
+      .popup {
+        position: absolute;
+        top: 200px;
+        left: 50%;
+        transform: translateX(-50%);
+        /* right: 50%; */
+        background: white;
+        padding: 10px;
+        border: 1px solid #ccc;
+        z-index: 10;
+        flex-direction: column;
+        gap: 5px;
 
-    #canvas {
-      flex: 1;
-      width: 55vw;
-      height: 100vh;
-      border: 1px solid #ccc;
-    }
-    #toolbox {
-      width: 190px;
-      background: #f5f5f5;
-      padding: 10px;
-      border-right: 1px solid #ccc;
-    }
-    #toolbox2 {
-      width: 175px;
-      background: #f5f5f5;
-      padding: 10px;
-      border-right: 1px solid #ccc;
-    }
-    .tool-item {
-      width: 155px;
-      height: 40px;
-      margin: 10px auto;
-      background: white;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: grab;
-    }
-    .popup {
-      position: absolute;
-      top: 200px;
-      left: 50%;
-      transform: translateX(-50%);
-      /* right: 50%; */
-      background: white;
-      padding: 10px;
-      border: 1px solid #ccc;
-      z-index: 10;
-      flex-direction: column;
-      gap: 5px;
+        color: #111;
+        transform: translate(-50%, -50%);
+        width: 300px;
+        height: 350px;
+        overflow: auto;
+      }
+      .popup input,
+      .popup select,
+      .popup button {
+        padding: 5px;
+        font-size: 14px;
+      }
 
-      color: #111;
-      transform: translate(-50%, -50%);
-      width: 300px;
-      height: 350px;
-      overflow: auto;
-    }
-    .popup input, .popup select, .popup button {
-      padding: 5px;
-      font-size: 14px;
-    }
-
-    .hidden {
-      display: none;
-    }
-    .flex {
-      display: flex;
-    }
-</style>
+      .hidden {
+        display: none;
+      }
+      .flex {
+        display: flex;
+      }
+    </style>
   </head>
   <body class="p-4">
     <div id="toolbox">
-      <div style="margin-top: 10px;">
-        <h4 style="width: 100%; height: 40px; text-align: center;">Search</h4>
-        <div style="padding-left: 10px;">
-          <label for="level1">L1</label> :
+      <div style="margin-top: 10px">
+        <h4 style="width: 100%; height: 40px; text-align: center">Search</h4>
+        <div style="padding-left: 10px">
+          <label for="level1">L1</label>
+          :
           <select id="level1" class="form-select">
             <option value="">-- 선택 --</option>
           </select>
         </div>
 
-        <div style="padding-left: 10px;">
-          <label for="level2">L2</label> :
+        <div style="padding-left: 10px">
+          <label for="level2">L2</label>
+          :
           <select id="level2" class="form-select" disabled>
             <option value="">-- 선택 --</option>
           </select>
         </div>
 
-        <div style="padding-left: 10px;">
-          <label for="level3">L3</label> :
+        <div style="padding-left: 10px">
+          <label for="level3">L3</label>
+          :
           <select id="level3" class="form-select" disabled>
             <option value="">-- 선택 --</option>
           </select>
         </div>
-
       </div>
-      <div style="padding: 10px;"><button id="save-button">Save XML</button></div>
+      <div style="padding: 10px"><button id="save-button">Save XML</button></div>
       <!-- <div style="margin-top: 20px;">
         <h4 style="width: 100%; height: 40px; text-align: center;">L3 추천 Template</h4>
         <div id="templates1" style="display: none;">
@@ -140,101 +157,382 @@
       </div> -->
     </div>
     <div id="toolbox2">
-
-      <h4 id="level4" style="width: 100%; height: 40px; text-align: center;">L4</h4>
-      <div id="palleteGroup1" style="display: none;">
-
-        <div id="logo-div" class="tool-item" draggable="true" data-id="struct" data-name="기획" data-type="bpmn:Task" title="기획">
-          <button class="btn btn-main" style="width: 100%; height: 100%; font-size: 11px;">기획</button>
+      <h4 id="level4" style="width: 100%; height: 40px; text-align: center">L4</h4>
+      <div id="palleteGroup1" style="display: none">
+        <div
+          id="logo-div"
+          class="tool-item"
+          draggable="true"
+          data-id="struct"
+          data-name="기획"
+          data-type="bpmn:Task"
+          title="기획"
+        >
+          <button class="btn btn-main" style="width: 100%; height: 100%; font-size: 11px">
+            기획
+          </button>
         </div>
-        <div id="logo-div" class="tool-item" draggable="true" data-id="design" data-name="디자인" data-type="bpmn:Task" title="디자인">
-          <button class="btn btn-main" style="width: 100%; height: 100%; font-size: 11px;">디자인</button>
+        <div
+          id="logo-div"
+          class="tool-item"
+          draggable="true"
+          data-id="design"
+          data-name="디자인"
+          data-type="bpmn:Task"
+          title="디자인"
+        >
+          <button class="btn btn-main" style="width: 100%; height: 100%; font-size: 11px">
+            디자인
+          </button>
         </div>
-        <div id="logo-div" class="tool-item" draggable="true" data-id="publishing" data-name="퍼블리싱" data-type="bpmn:Task" title="퍼블리싱">
-          <button class="btn btn-main" style="width: 100%; height: 100%; font-size: 11px;">퍼블리싱</button>
+        <div
+          id="logo-div"
+          class="tool-item"
+          draggable="true"
+          data-id="publishing"
+          data-name="퍼블리싱"
+          data-type="bpmn:Task"
+          title="퍼블리싱"
+        >
+          <button class="btn btn-main" style="width: 100%; height: 100%; font-size: 11px">
+            퍼블리싱
+          </button>
         </div>
-        <div id="logo-div" class="tool-item" draggable="true" data-id="dev" data-name="백엔드" data-type="bpmn:Task" title="백엔드">
-          <button class="btn btn-main" style="width: 100%; height: 100%; font-size: 11px;">백엔드</button>
+        <div
+          id="logo-div"
+          class="tool-item"
+          draggable="true"
+          data-id="dev"
+          data-name="백엔드"
+          data-type="bpmn:Task"
+          title="백엔드"
+        >
+          <button class="btn btn-main" style="width: 100%; height: 100%; font-size: 11px">
+            백엔드
+          </button>
         </div>
-        <div id="database" class="tool-item hidden" draggable="true" data-id="db" data-name="데이터베이스" data-type="bpmn:Task" title="데이터베이스">
-          <button class="btn btn-main" style="width: 100%; height: 100%; font-size: 11px;">데이터베이스</button>
+        <div
+          id="database"
+          class="tool-item hidden"
+          draggable="true"
+          data-id="db"
+          data-name="데이터베이스"
+          data-type="bpmn:Task"
+          title="데이터베이스"
+        >
+          <button class="btn btn-main" style="width: 100%; height: 100%; font-size: 11px">
+            데이터베이스
+          </button>
         </div>
-        <div id="frontend" class="tool-item hidden" draggable="true" data-id="db" data-name="프론트엔드" data-type="bpmn:Task" title="프론트엔드">
-          <button class="btn btn-main" style="width: 100%; height: 100%; font-size: 11px;">프론트엔드</button>
+        <div
+          id="frontend"
+          class="tool-item hidden"
+          draggable="true"
+          data-id="db"
+          data-name="프론트엔드"
+          data-type="bpmn:Task"
+          title="프론트엔드"
+        >
+          <button class="btn btn-main" style="width: 100%; height: 100%; font-size: 11px">
+            프론트엔드
+          </button>
         </div>
-        <div id="logo-div" class="tool-item" data-id="" data-name="" data-type="bpmn:Task" title="다른 L4 찾기">
-          <button id="find-another-l4" style="width: 100%; height: 100%; font-size: 11px; background-color: aqua;">다른 L4 찾기</button>
+        <div
+          id="logo-div"
+          class="tool-item"
+          data-id=""
+          data-name=""
+          data-type="bpmn:Task"
+          title="다른 L4 찾기"
+        >
+          <button
+            id="find-another-l4"
+            style="width: 100%; height: 100%; font-size: 11px; background-color: aqua"
+          >
+            다른 L4 찾기
+          </button>
         </div>
-        <div id="logo-div" class="tool-item" draggable="true" data-id="" data-name="" data-type="bpmn:Task" title="신규 L4 등록">
-          <button id="create-l4" style="width: 100%; height: 100%; font-size: 11px; background-color: aqua;">신규 L4 등록</button>
+        <div
+          id="logo-div"
+          class="tool-item"
+          draggable="true"
+          data-id=""
+          data-name=""
+          data-type="bpmn:Task"
+          title="신규 L4 등록"
+        >
+          <button
+            id="create-l4"
+            style="width: 100%; height: 100%; font-size: 11px; background-color: aqua"
+          >
+            신규 L4 등록
+          </button>
         </div>
       </div>
-      <div id="palleteGroup2" style="display: none;">
-
-        <div id="start-event-div" class="tool-item" draggable="true" data-id="start-event" data-name="start-event" data-type="bpmn:StartEvent" title="Start Event">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Start Event</button>
+      <div id="palleteGroup2" style="display: none">
+        <div
+          id="start-event-div"
+          class="tool-item"
+          draggable="true"
+          data-id="start-event"
+          data-name="start-event"
+          data-type="bpmn:StartEvent"
+          title="Start Event"
+        >
+          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px">
+            Start Event
+          </button>
         </div>
-        <div id="end-event-div" class="tool-item" draggable="true" data-id="end-event" data-name="end-event" data-type="bpmn:EndEvent" title="End Event">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">End Event</button>
+        <div
+          id="end-event-div"
+          class="tool-item"
+          draggable="true"
+          data-id="end-event"
+          data-name="end-event"
+          data-type="bpmn:EndEvent"
+          title="End Event"
+        >
+          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px">
+            End Event
+          </button>
         </div>
-        <div id="task-div" class="tool-item" draggable="true" data-id="task" data-name="task" data-type="bpmn:Task" title="Task">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Task</button>
+        <div
+          id="task-div"
+          class="tool-item"
+          draggable="true"
+          data-id="task"
+          data-name="task"
+          data-type="bpmn:Task"
+          title="Task"
+        >
+          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px">
+            Task
+          </button>
         </div>
-        <div id="exclusive-gateway-div" class="tool-item" draggable="true" data-id="exclusive-gateway" data-name="exclusive-gateway" data-type="bpmn:ExclusiveGateway" title="Exclusive Gateway">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Exclusive Gateway</button>
+        <div
+          id="exclusive-gateway-div"
+          class="tool-item"
+          draggable="true"
+          data-id="exclusive-gateway"
+          data-name="exclusive-gateway"
+          data-type="bpmn:ExclusiveGateway"
+          title="Exclusive Gateway"
+        >
+          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px">
+            Exclusive Gateway
+          </button>
         </div>
-        <div id="data-store-reference-div" class="tool-item" draggable="true" data-id="inclusive-gateway" data-name="inclusive-gateway" data-type="bpmn:InclusiveGateway" title="InclusiveGateway">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Inclusive Gateway</button>
+        <div
+          id="data-store-reference-div"
+          class="tool-item"
+          draggable="true"
+          data-id="inclusive-gateway"
+          data-name="inclusive-gateway"
+          data-type="bpmn:InclusiveGateway"
+          title="InclusiveGateway"
+        >
+          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px">
+            Inclusive Gateway
+          </button>
         </div>
-        <div id="participant-div" class="tool-item" draggable="true" data-id="user-task" data-name="user-task" data-type="bpmn:UserTask" title="User Task">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">User Task</button>
+        <div
+          id="participant-div"
+          class="tool-item"
+          draggable="true"
+          data-id="user-task"
+          data-name="user-task"
+          data-type="bpmn:UserTask"
+          title="User Task"
+        >
+          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px">
+            User Task
+          </button>
         </div>
-        <div id="intermediate-catch-event-div" class="tool-item" draggable="true" data-id="script-task" data-name="script-task" data-type="bpmn:ScriptTask" title="ScriptTask">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Script Task</button>
+        <div
+          id="intermediate-catch-event-div"
+          class="tool-item"
+          draggable="true"
+          data-id="script-task"
+          data-name="script-task"
+          data-type="bpmn:ScriptTask"
+          title="ScriptTask"
+        >
+          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px">
+            Script Task
+          </button>
         </div>
-        <div id="sub-process-div" class="tool-item" draggable="true" data-id="service-task" data-name="service-task" data-type="bpmn:ServiceTask" title="Service Task">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Service Task</button>
+        <div
+          id="sub-process-div"
+          class="tool-item"
+          draggable="true"
+          data-id="service-task"
+          data-name="service-task"
+          data-type="bpmn:ServiceTask"
+          title="Service Task"
+        >
+          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px">
+            Service Task
+          </button>
         </div>
       </div>
-      <div id="palleteGroup3" style="display: none;">
-        <div id="logo-div" class="tool-item" draggable="true" data-id="db" data-name="데이터베이스" data-type="bpmn:Task" title="데이터베이스">
-          <button class="btn btn-main" style="width: 100%; height: 100%; font-size: 11px;">데이터베이스</button>
+      <div id="palleteGroup3" style="display: none">
+        <div
+          id="logo-div"
+          class="tool-item"
+          draggable="true"
+          data-id="db"
+          data-name="데이터베이스"
+          data-type="bpmn:Task"
+          title="데이터베이스"
+        >
+          <button class="btn btn-main" style="width: 100%; height: 100%; font-size: 11px">
+            데이터베이스
+          </button>
         </div>
-        <div id="logo-div" class="tool-item" draggable="true" data-id="db" data-name="프론트엔드" data-type="bpmn:Task" title="프론트엔드">
-          <button class="btn btn-main" style="width: 100%; height: 100%; font-size: 11px;">프론트엔드</button>
+        <div
+          id="logo-div"
+          class="tool-item"
+          draggable="true"
+          data-id="db"
+          data-name="프론트엔드"
+          data-type="bpmn:Task"
+          title="프론트엔드"
+        >
+          <button class="btn btn-main" style="width: 100%; height: 100%; font-size: 11px">
+            프론트엔드
+          </button>
         </div>
       </div>
-      <div id="palleteGroup4" style="display: none;">
-
-        <div id="start-event-div" class="tool-item" draggable="true" data-id="start-event" data-name="start-event" data-type="bpmn:StartEvent" title="Start Event">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Start Event</button>
+      <div id="palleteGroup4" style="display: none">
+        <div
+          id="start-event-div"
+          class="tool-item"
+          draggable="true"
+          data-id="start-event"
+          data-name="start-event"
+          data-type="bpmn:StartEvent"
+          title="Start Event"
+        >
+          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px">
+            Start Event
+          </button>
         </div>
-        <div id="end-event-div" class="tool-item" draggable="true" data-id="end-event" data-name="end-event" data-type="bpmn:EndEvent" title="End Event">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">End Event</button>
+        <div
+          id="end-event-div"
+          class="tool-item"
+          draggable="true"
+          data-id="end-event"
+          data-name="end-event"
+          data-type="bpmn:EndEvent"
+          title="End Event"
+        >
+          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px">
+            End Event
+          </button>
         </div>
-        <div id="task-div" class="tool-item" draggable="true" data-id="task" data-name="task" data-type="bpmn:Task" title="Task">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Task</button>
+        <div
+          id="task-div"
+          class="tool-item"
+          draggable="true"
+          data-id="task"
+          data-name="task"
+          data-type="bpmn:Task"
+          title="Task"
+        >
+          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px">
+            Task
+          </button>
         </div>
-        <div id="data-object-reference-div" class="tool-item" draggable="true" data-id="data-object-reference" data-name="data-object-reference" data-type="bpmn:DataObjectReference" title="Data Object Reference">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Data Object Reference</button>
+        <div
+          id="data-object-reference-div"
+          class="tool-item"
+          draggable="true"
+          data-id="data-object-reference"
+          data-name="data-object-reference"
+          data-type="bpmn:DataObjectReference"
+          title="Data Object Reference"
+        >
+          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px">
+            Data Object Reference
+          </button>
         </div>
-        <div id="participant-div" class="tool-item" draggable="true" data-id="participant" data-name="participant" data-type="bpmn:Participant" title="Participant">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Participant</button>
+        <div
+          id="participant-div"
+          class="tool-item"
+          draggable="true"
+          data-id="participant"
+          data-name="participant"
+          data-type="bpmn:Participant"
+          title="Participant"
+        >
+          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px">
+            Participant
+          </button>
         </div>
-        <div id="intermediate-catch-event-div" class="tool-item" draggable="true" data-id="intermediate-catch-event" data-name="intermediate-catch-event" data-type="bpmn:IntermediateCatchEvent" title="Intermediate Catch Event">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Intermediate Catch Event</button>
+        <div
+          id="intermediate-catch-event-div"
+          class="tool-item"
+          draggable="true"
+          data-id="intermediate-catch-event"
+          data-name="intermediate-catch-event"
+          data-type="bpmn:IntermediateCatchEvent"
+          title="Intermediate Catch Event"
+        >
+          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px">
+            Intermediate Catch Event
+          </button>
         </div>
-        <div id="exclusive-gateway-div" class="tool-item" draggable="true" data-id="exclusive-gateway" data-name="exclusive-gateway" data-type="bpmn:ExclusiveGateway" title="Exclusive Gateway">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Exclusive Gateway</button>
+        <div
+          id="exclusive-gateway-div"
+          class="tool-item"
+          draggable="true"
+          data-id="exclusive-gateway"
+          data-name="exclusive-gateway"
+          data-type="bpmn:ExclusiveGateway"
+          title="Exclusive Gateway"
+        >
+          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px">
+            Exclusive Gateway
+          </button>
         </div>
-        <div id="sub-process-div" class="tool-item" draggable="true" data-id="sub-process" data-name="sub-process" data-type="bpmn:SubProcess" title="Sub Process">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Sub Process</button>
+        <div
+          id="sub-process-div"
+          class="tool-item"
+          draggable="true"
+          data-id="sub-process"
+          data-name="sub-process"
+          data-type="bpmn:SubProcess"
+          title="Sub Process"
+        >
+          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px">
+            Sub Process
+          </button>
         </div>
-        <div id="data-store-reference-div" class="tool-item" draggable="true" data-id="data-store-reference" data-name="data-store-reference" data-type="bpmn:DataStoreReference" title="Data Store Reference">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Data Store Reference</button>
+        <div
+          id="data-store-reference-div"
+          class="tool-item"
+          draggable="true"
+          data-id="data-store-reference"
+          data-name="data-store-reference"
+          data-type="bpmn:DataStoreReference"
+          title="Data Store Reference"
+        >
+          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px">
+            Data Store Reference
+          </button>
         </div>
-        <div id="group-div" class="tool-item" draggable="true" data-id="group" data-name="group" data-type="bpmn:Group" title="Group">
-          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px;">Group</button>
+        <div
+          id="group-div"
+          class="tool-item"
+          draggable="true"
+          data-id="group"
+          data-name="group"
+          data-type="bpmn:Group"
+          title="Group"
+        >
+          <button class="btn btn-primary" style="width: 100%; height: 100%; font-size: 11px">
+            Group
+          </button>
         </div>
       </div>
     </div>
@@ -242,631 +540,696 @@
       <div id="canvas"></div>
     </div>
     <div>
-      <div id="properties" class="bpmn-properties-panel">
+      <div id="properties" class="bpmn-properties-panel"></div>
     </div>
 
-
-<div id="popup" class="popup panel hidden">
-  <h3>다른 L4 선택</h3>
-    <select id="level11" class="form-select">
-      <option value="">-- L1: 선택 --</option>
-    </select>
-    <select id="level12" class="form-select" disabled>
-      <option value="">-- L2: 선택 --</option>
-    </select>
-    <select id="level13" class="form-select" disabled>
-      <option value="">-- L3: 선택 --</option>
-    </select>
-    <div id="level4Container" class="hidden">
-      <div class="tool-item" title="데이터베이스">
-        <button class="btn btn-main popup-l4" data-id="db" data-name="데이터베이스" data-type="bpmn:Task" style="width: 100%; height: 100%; font-size: 11px;">데이터베이스</button>
+    <div id="popup" class="popup panel hidden">
+      <h3>다른 L4 선택</h3>
+      <select id="level11" class="form-select">
+        <option value="">-- L1: 선택 --</option>
+      </select>
+      <select id="level12" class="form-select" disabled>
+        <option value="">-- L2: 선택 --</option>
+      </select>
+      <select id="level13" class="form-select" disabled>
+        <option value="">-- L3: 선택 --</option>
+      </select>
+      <div id="level4Container" class="hidden">
+        <div class="tool-item" title="데이터베이스">
+          <button
+            class="btn btn-main popup-l4"
+            data-id="db"
+            data-name="데이터베이스"
+            data-type="bpmn:Task"
+            style="width: 100%; height: 100%; font-size: 11px"
+          >
+            데이터베이스
+          </button>
+        </div>
       </div>
+      <!-- <button id="createBtn">직접 입력</button> -->
+      <button id="closeBtn">닫기</button>
     </div>
-  <!-- <button id="createBtn">직접 입력</button> -->
-  <button id="closeBtn">닫기</button>
-</div>
-<div id="popup2" class="popup panel hidden">
-  <h3>신규 L4 추가</h3>
-    <select id="level111" class="form-select">
-      <option value="">-- L1: 선택 --</option>
-    </select>
-    <select id="level122" class="form-select" disabled>
-      <option value="">-- L2: 선택 --</option>
-    </select>
-    <select id="level133" class="form-select" disabled>
-      <option value="">-- L3: 선택 --</option>
-    </select>
-    <div id="level44Container" class="hidden">
-      L4 : <input type="text" id="l4Name" class="form-control" placeholder="L4 이름을 입력하세요">
+    <div id="popup2" class="popup panel hidden">
+      <h3>신규 L4 추가</h3>
+      <select id="level111" class="form-select">
+        <option value="">-- L1: 선택 --</option>
+      </select>
+      <select id="level122" class="form-select" disabled>
+        <option value="">-- L2: 선택 --</option>
+      </select>
+      <select id="level133" class="form-select" disabled>
+        <option value="">-- L3: 선택 --</option>
+      </select>
+      <div id="level44Container" class="hidden">
+        L4 :
+        <input type="text" id="l4Name" class="form-control" placeholder="L4 이름을 입력하세요" />
+      </div>
+      <button id="createBtn">L4 추가</button>
+      <button id="closeBtn2">닫기</button>
     </div>
-  <button id="createBtn">L4 추가</button>
-  <button id="closeBtn2">닫기</button>
-</div>
 
+    <script>
+      (async function () {
+        // Custom Palette Provider
+        class CustomPaletteProvider {
+          constructor(
+            palette,
+            create,
+            elementFactory,
+            translate,
+            globalConnect,
+            handTool,
+            lassoTool,
+            spaceTool,
+          ) {
+            this.create = create;
+            this.elementFactory = elementFactory;
+            this.translate = translate;
+            this.globalConnect = globalConnect;
+            this.handTool = handTool;
+            this.lassoTool = lassoTool;
+            this.spaceTool = spaceTool;
 
-  <script>
-    (async function() {
-    // Custom Palette Provider
-    class CustomPaletteProvider {
-      constructor(palette, create, elementFactory, translate, globalConnect, handTool, lassoTool, spaceTool) {
-        this.create = create;
-        this.elementFactory = elementFactory;
-        this.translate = translate;
-        this.globalConnect = globalConnect;
-        this.handTool = handTool;
-        this.lassoTool = lassoTool;
-        this.spaceTool = spaceTool;
+            palette.registerProvider(this);
+          }
 
-        palette.registerProvider(this);
-      }
-
-      getPaletteEntries() {
-        const { create, elementFactory, translate, globalConnect, handTool, lassoTool, spaceTool } = this;
-        let returnVal = {
-          // 🔧 Activate group: 기본 도구들
-          'hand-tool': {
-            group: 'tools',
-            className: 'bpmn-icon-hand-tool',
-            title: translate('Activate the hand tool'),
-            action: {
-              click: function (event) {
-                handTool.activateHand(event);
-              }
-            }
-          },
-          'lasso-tool': {
-            group: 'tools',
-            className: 'bpmn-icon-lasso-tool',
-            title: translate('Activate the lasso tool'),
-            action: {
-              click: function (event) {
-                lassoTool.activateSelection(event);
-              }
-            }
-          },
-          'space-tool': {
-            group: 'tools',
-            className: 'bpmn-icon-space-tool',
-            title: translate('Activate the space tool'),
-            action: {
-              click: function (event) {
-                spaceTool.activateSelection(event);
-              }
-            }
-          },
-          'global-connect-tool': {
-            group: 'tools',
-            className: 'bpmn-icon-connection-multi',
-            title: translate('Activate the global connect tool'),
-            action: {
-              click: function (event) {
-                globalConnect.start(event);
-              }
-            }
-          },
-          'tool-separator': {
-            group: 'tools',
-            separator: true
-          },
-        }
-        returnVal = {
-          ...returnVal,
-          'create.startEvent': {
-          group: 'model',
-            className: 'bpmn-icon-start-event-none',
-            title: 'Create StartEvent',
-            action: {
-              dragstart: (event) => {
-                const shape = elementFactory.createShape({ type: 'bpmn:StartEvent' });
-                create.start(event, shape);
+          getPaletteEntries() {
+            const {
+              create,
+              elementFactory,
+              translate,
+              globalConnect,
+              handTool,
+              lassoTool,
+              spaceTool,
+            } = this;
+            let returnVal = {
+              // 🔧 Activate group: 기본 도구들
+              'hand-tool': {
+                group: 'tools',
+                className: 'bpmn-icon-hand-tool',
+                title: translate('Activate the hand tool'),
+                action: {
+                  click: function (event) {
+                    handTool.activateHand(event);
+                  },
+                },
               },
-              click: (event) => {
-                const shape = elementFactory.createShape({ type: 'bpmn:StartEvent' });
-                create.start(event, shape);
-              }
-            }
-          },
-          'create.intermediateThrowEvent': {
-            group: 'model',
-            className: 'bpmn-icon-intermediate-event-none',
-            title: 'Create IntermediateThrowEvent',
-            action: {
-              dragstart: (event) => {
-                const shape = elementFactory.createShape({ type: 'bpmn:IntermediateThrowEvent' });
-                create.start(event, shape);
+              'lasso-tool': {
+                group: 'tools',
+                className: 'bpmn-icon-lasso-tool',
+                title: translate('Activate the lasso tool'),
+                action: {
+                  click: function (event) {
+                    lassoTool.activateSelection(event);
+                  },
+                },
               },
-              click: (event) => {
-                const shape = elementFactory.createShape({ type: 'bpmn:IntermediateThrowEvent' });
-                create.start(event, shape);
-              }
-            }
-          },
-          'create.endEvent': {
-            group: 'model',
-            className: 'bpmn-icon-end-event-none',
-            title: 'Create EndEvent',
-            action: {
-              dragstart: (event) => {
-                const shape = elementFactory.createShape({ type: 'bpmn:EndEvent' });
-                create.start(event, shape);
+              'space-tool': {
+                group: 'tools',
+                className: 'bpmn-icon-space-tool',
+                title: translate('Activate the space tool'),
+                action: {
+                  click: function (event) {
+                    spaceTool.activateSelection(event);
+                  },
+                },
               },
-              click: (event) => {
-                const shape = elementFactory.createShape({ type: 'bpmn:EndEvent' });
-                create.start(event, shape);
-              }
-            }
-          },
-          'create.exclusiveGateway': {
-            group: 'model',
-            className: 'bpmn-icon-gateway-xor',
-            title: 'Create ExclusiveGateway',
-            action: {
-              dragstart: (event) => {
-                const shape = elementFactory.createShape({ type: 'bpmn:ExclusiveGateway' });
-                create.start(event, shape);
+              'global-connect-tool': {
+                group: 'tools',
+                className: 'bpmn-icon-connection-multi',
+                title: translate('Activate the global connect tool'),
+                action: {
+                  click: function (event) {
+                    globalConnect.start(event);
+                  },
+                },
               },
-              click: (event) => {
-                const shape = elementFactory.createShape({ type: 'bpmn:ExclusiveGateway' });
-                create.start(event, shape);
-              }
-            }
-          },
-        };
-
-        return returnVal;
-      }
-    }
-
-
-    class CustomContextPadProvider {
-      constructor(config, contextPad, create, elementFactory, connect, translate, modeling, popupMenu) {
-        this.create = create;
-        this.contextPad = contextPad;
-        this.create = create;
-        this.elementFactory = elementFactory;
-        this.connect = connect;
-        this.translate = translate;
-        this.modeling = modeling;
-        this.popupMenu = popupMenu;
-
-        contextPad.registerProvider(this);
-      }
-
-      getContextPadEntries() {
-        const { config, contextPad, create, elementFactory, connect, translate, modeling, popupMenu } = this;
-        let returnVal = {
-          // 🔧 Activate group: 기본 도구들
-          'connect': {
-            group: 'tools',
-            className: 'bpmn-icon-connection-multi',
-            title: translate('Connect using sequence flow'),
-            action: {
-              click: function(event, element) {
-                connect.start(event, element);
-              }
-            }
-          },
-          'delete': {
-            group: 'tools',
-            className: 'bpmn-icon-trash',
-            title: translate('Remove'),
-            action: {
-              click: function(event, element) {
-                modeling.removeElements([element]);
-              }
-            }
-          },
-        }
-
-        return returnVal;
-      }
-    }
-
-    const CustomModule = {
-      __init__: ['customPaletteProvider'],
-      paletteProvider: ['value', null], // <-- 기본 palette 제거!
-      contextPadProvider: ['value', null], // <-- 기본 ContextPad 제거!
-      customPaletteProvider: [
-        'type',
-        function(palette, create, elementFactory, translate, globalConnect, handTool, lassoTool, spaceTool) {
-          return new CustomPaletteProvider(palette, create, elementFactory, translate, globalConnect, handTool, lassoTool, spaceTool);
-        }
-      ],
-    };
-    const camundaModdle = await fetch('./json/camundaModdle.json')
-      .then(response => response.json());
-    const bpmnModeler = new BpmnModeler({
-      container: '#canvas',
-      propertiesPanel: {
-        parent: '#properties',
-      },
-      moddleExtensions: {
-        camunda: camundaModdle
-      },
-      additionalModules: [
-        window.BpmnJSPropertiesPanel.BpmnPropertiesPanelModule,
-        window.BpmnJSPropertiesPanel.BpmnPropertiesProviderModule,
-        window.BpmnJSPropertiesPanel.CamundaPlatformPropertiesProviderModule,
-        window.BpmnJSPropertiesPanel.CamundaPlatformTooltipProvider,
-        CustomModule
-      ],
-    });
-
-    const eventBus = bpmnModeler.get('eventBus');
-
-    fetch('./xml/blank.xml')
-      .then(response => response.text())
-      .then(xml => {
-        return bpmnModeler.importXML(xml).then(() => {
-
-
-            const canvas = bpmnModeler.get('canvas');
-            const modeling = bpmnModeler.get('modeling');
-            const moddle = bpmnModeler.get('moddle');
-            const elementFactory = bpmnModeler.get('elementFactory');
-            const selection = bpmnModeler.get('selection');
-          const level1 = document.getElementById("level1");
-          const level2 = document.getElementById("level2");
-          const level3 = document.getElementById("level3");
-          const level4 = document.getElementById("level4");
-          const level11 = document.getElementById("level11");
-          const level12 = document.getElementById("level12");
-          const level13 = document.getElementById("level13");
-          const level111 = document.getElementById("level111");
-          const level122 = document.getElementById("level122");
-          const level133 = document.getElementById("level133");
-          const createBtn = document.getElementById("createBtn");
-          const level14 = document.getElementById("level14");
-          const popupEl = document.getElementById('popup');
-          const popup2El = document.getElementById('popup2');
-          const level4El = document.getElementById('level4Container');
-          const level44El = document.getElementById('level44Container');
-          const closeBtnEl = document.getElementById('closeBtn');
-          const closeBtn2El = document.getElementById('closeBtn2');
-
-          document.querySelectorAll('.tool-item').forEach(item => {
-            item.addEventListener('dragstart', (e) => {
-              const type = e.target.dataset.type;
-              const role = e.target.dataset.role;
-              const id = e.target.dataset.id;
-              const name = e.target.dataset.name;
-              const label = e.target.dataset.label;
-
-              e.dataTransfer.setData('type', type);
-              e.dataTransfer.setData('role', role);
-              e.dataTransfer.setData('id', id);
-              e.dataTransfer.setData('name', name);
-              e.dataTransfer.setData('label', label);
-            });
-          });
-
-          const canvasContainer = document.getElementById('canvas');
-
-          canvasContainer.addEventListener('dragover', (e) => {
-            e.preventDefault();
-          });
-
-          canvasContainer.addEventListener('drop', async (e) => {
-            e.preventDefault();
-
-            const type = e.dataTransfer.getData('type');
-            const role = e.dataTransfer.getData('id') ? e.dataTransfer.getData('role') : '';
-            const id = e.dataTransfer.getData('id') ? e.dataTransfer.getData('id') + new Date().getTime() : '';
-            const name = e.dataTransfer.getData('name') ? e.dataTransfer.getData('name') : '';
-            const label = e.dataTransfer.getData('label') ? e.dataTransfer.getData('label') : '';
-
-            if (!type) return;
-
-            const rect = canvasContainer.getBoundingClientRect();
-            const position = {
-              x: e.clientX - rect.left,
-              y: e.clientY - rect.top
+              'tool-separator': {
+                group: 'tools',
+                separator: true,
+              },
+            };
+            returnVal = {
+              ...returnVal,
+              'create.startEvent': {
+                group: 'model',
+                className: 'bpmn-icon-start-event-none',
+                title: 'Create StartEvent',
+                action: {
+                  dragstart: event => {
+                    const shape = elementFactory.createShape({ type: 'bpmn:StartEvent' });
+                    create.start(event, shape);
+                  },
+                  click: event => {
+                    const shape = elementFactory.createShape({ type: 'bpmn:StartEvent' });
+                    create.start(event, shape);
+                  },
+                },
+              },
+              'create.intermediateThrowEvent': {
+                group: 'model',
+                className: 'bpmn-icon-intermediate-event-none',
+                title: 'Create IntermediateThrowEvent',
+                action: {
+                  dragstart: event => {
+                    const shape = elementFactory.createShape({
+                      type: 'bpmn:IntermediateThrowEvent',
+                    });
+                    create.start(event, shape);
+                  },
+                  click: event => {
+                    const shape = elementFactory.createShape({
+                      type: 'bpmn:IntermediateThrowEvent',
+                    });
+                    create.start(event, shape);
+                  },
+                },
+              },
+              'create.endEvent': {
+                group: 'model',
+                className: 'bpmn-icon-end-event-none',
+                title: 'Create EndEvent',
+                action: {
+                  dragstart: event => {
+                    const shape = elementFactory.createShape({ type: 'bpmn:EndEvent' });
+                    create.start(event, shape);
+                  },
+                  click: event => {
+                    const shape = elementFactory.createShape({ type: 'bpmn:EndEvent' });
+                    create.start(event, shape);
+                  },
+                },
+              },
+              'create.exclusiveGateway': {
+                group: 'model',
+                className: 'bpmn-icon-gateway-xor',
+                title: 'Create ExclusiveGateway',
+                action: {
+                  dragstart: event => {
+                    const shape = elementFactory.createShape({ type: 'bpmn:ExclusiveGateway' });
+                    create.start(event, shape);
+                  },
+                  click: event => {
+                    const shape = elementFactory.createShape({ type: 'bpmn:ExclusiveGateway' });
+                    create.start(event, shape);
+                  },
+                },
+              },
             };
 
-            // 4. businessObject 구성
-            const businessObject = moddle.create(type, {
-              id,
-              name,
-            });
+            return returnVal;
+          }
+        }
 
-            const shape = elementFactory.createShape({
-              type,
-              businessObject
-            });
-            shape.businessObject.role = role;
+        class CustomContextPadProvider {
+          constructor(
+            config,
+            contextPad,
+            create,
+            elementFactory,
+            connect,
+            translate,
+            modeling,
+            popupMenu,
+          ) {
+            this.create = create;
+            this.contextPad = contextPad;
+            this.create = create;
+            this.elementFactory = elementFactory;
+            this.connect = connect;
+            this.translate = translate;
+            this.modeling = modeling;
+            this.popupMenu = popupMenu;
 
-            modeling.createShape(shape, position, canvas.getRootElement());
+            contextPad.registerProvider(this);
+          }
 
-          });
+          getContextPadEntries() {
+            const {
+              config,
+              contextPad,
+              create,
+              elementFactory,
+              connect,
+              translate,
+              modeling,
+              popupMenu,
+            } = this;
+            let returnVal = {
+              // 🔧 Activate group: 기본 도구들
+              connect: {
+                group: 'tools',
+                className: 'bpmn-icon-connection-multi',
+                title: translate('Connect using sequence flow'),
+                action: {
+                  click: function (event, element) {
+                    connect.start(event, element);
+                  },
+                },
+              },
+              delete: {
+                group: 'tools',
+                className: 'bpmn-icon-trash',
+                title: translate('Remove'),
+                action: {
+                  click: function (event, element) {
+                    modeling.removeElements([element]);
+                  },
+                },
+              },
+            };
 
-          document.querySelectorAll('.popup-l4').forEach(item => {
-            item.addEventListener('click', (e) => {
-              e.preventDefault();
-              // console.log(e)
-              // const type = e.target.dataset.type;
-              // const role = e.target.dataset.role;
-              // const id = e.target.dataset.id + new Date().getTime();
-              // const name = e.target.dataset.name;
-              // const label = e.target.dataset.label;
-              // if (!type) return;
+            return returnVal;
+          }
+        }
 
-              // const canvas = bpmnModeler.get('canvas');
-              // const modeling = bpmnModeler.get('modeling');
-              // const moddle = bpmnModeler.get('moddle');
-              // const elementFactory = bpmnModeler.get('elementFactory');
-              // const selection = bpmnModeler.get('selection');
-
-              // const rect = canvasContainer.getBoundingClientRect();
-              // const position = {
-              //   x: e.clientX - rect.left,
-              //   y: e.clientY - rect.top
-              // };
-
-              // // 4. businessObject 구성
-              // const businessObject = moddle.create(type, {
-              //   id,
-              //   name,
-              // });
-
-              // const shape = elementFactory.createShape({
-              //   type,
-              //   businessObject
-              // });
-              // shape.businessObject.role = role;
-
-              // modeling.createShape(shape, position, canvas.getRootElement());
-              // selection.select(shape); // 겍체 선택
-              document.getElementById('database').classList.remove('hidden');
-              closeBtnEl.click(); // 팝업 닫기
-            });
-          });
-
-
-          const utils = bpmnUtils(bpmnModeler)
-          document.getElementById('save-button').addEventListener('click', (e) => {
-            utils.downloadXML('diagram.bpmn')
-          })
-          // 다른 L4 찾기 버튼 클릭 이벤트
-          document.getElementById('find-another-l4').addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-              resetAndDisable(level2, level3);
-            popupEl.classList.remove('hidden');
-            popupEl.classList.add('flex');
-          });
-          document.getElementById('create-l4').addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-              resetAndDisable(level2, level3);
-            popup2El.classList.remove('hidden');
-            popup2El.classList.add('flex');
-          });
-          // 닫기버튼 클릭 시 팝업창 close
-          closeBtn2El.addEventListener('click', (event) => {
-            level44El.classList.add('hidden');
-            popup2El.classList.add('hidden');
-            popup2El.classList.remove('flex');
-          });
-
-          const data = {
-            "테스트A": {
-              "테스트A-1": ["테스트A-1-1"],
-              "테스트A-2": ["테스트A-2-1"],
+        const CustomModule = {
+          __init__: ['customPaletteProvider'],
+          paletteProvider: ['value', null], // <-- 기본 palette 제거!
+          contextPadProvider: ['value', null], // <-- 기본 ContextPad 제거!
+          customPaletteProvider: [
+            'type',
+            function (
+              palette,
+              create,
+              elementFactory,
+              translate,
+              globalConnect,
+              handTool,
+              lassoTool,
+              spaceTool,
+            ) {
+              return new CustomPaletteProvider(
+                palette,
+                create,
+                elementFactory,
+                translate,
+                globalConnect,
+                handTool,
+                lassoTool,
+                spaceTool,
+              );
             },
-            "테스트B": {
-              "테스트B-1": ["테스트B-1-1"],
-              "테스트B-2": ["테스트B-2-1"],
-            }
-          };
-
-          let selectedElement = null;
-
-          // click outside 이벤트 - popup 외 element click 시 팝업 닫음
-          window.addEventListener('click', (event) => {
-            const { target } = event;
-
-            if (target === popupEl || popupEl.contains(target)) {
-              return;
-            }
-
-            level4El.classList.add('hidden');
-            popupEl.classList.add('hidden');
-            popupEl.classList.remove('flex');
-          });
-          // 닫기버튼 클릭 시 팝업창 close
-          closeBtnEl.addEventListener('click', (event) => {
-            level4El.classList.add('hidden');
-            popupEl.classList.add('hidden');
-            popupEl.classList.remove('flex');
-          });
-
-          function populateSelect(select, options, placeholder = "-- 선택 --") {
-            select.innerHTML = `<option value="">${placeholder}</option>`;
-            options.forEach(opt => {
-              const option = document.createElement("option");
-              option.value = opt;
-              option.textContent = opt;
-              select.appendChild(option);
-            });
-            select.disabled = options.length === 0;
-          }
-
-          function resetAndDisable(...selects) {
-            selects.forEach(s => {
-              s.innerHTML = `<option value="">-- 선택 --</option>`;
-              s.disabled = true;
-            });
-          }
-
-          const palleteGroup1 = document.getElementById("palleteGroup1");
-          const palleteGroup2 = document.getElementById("palleteGroup2");
-          const palleteGroup3 = document.getElementById("palleteGroup3");
-          const palleteGroup4 = document.getElementById("palleteGroup4");
-          // 초기 Level1 로드
-          populateSelect(level1, Object.keys(data));
-          populateSelect(level11, Object.keys(data));
-          populateSelect(level111, Object.keys(data));
-
-          level1.addEventListener("change", () => {
-            const selected = level1.value;
-            if (!selected || !data[selected]) {
-              resetAndDisable(level2, level3);
-              return;
-            }
-
-            populateSelect(level2, Object.keys(data[selected]));
-            resetAndDisable(level3);
-          });
-
-          level2.addEventListener("change", () => {
-            const l1 = level1.value;
-            const l2 = level2.value;
-            if (!l2 || !data[l1][l2]) {
-              resetAndDisable(level3);
-              return;
-            }
-            populateSelect(level3, data[l1][l2]);
-          });
-
-          level3.addEventListener("change", (e) => {
-            const selected = e.target.value;
-            console.log("Level 3 selected:", selected);
-            level4.innerText = selected + ' (L4)';
-            switch (selected) {
-              case "테스트A-1-1":
-                palleteGroup1.style.display = 'block';
-                palleteGroup2.style.display = 'none';
-                palleteGroup3.style.display = 'none';
-                palleteGroup4.style.display = 'none';
-                break;
-              case "테스트A-1-2":
-                palleteGroup1.style.display = 'none';
-                palleteGroup2.style.display = 'block';
-                palleteGroup3.style.display = 'none';
-                palleteGroup4.style.display = 'none';
-                break;
-              case "테스트B-1-1":
-                palleteGroup1.style.display = 'none';
-                palleteGroup2.style.display = 'none';
-                palleteGroup3.style.display = 'block';
-                palleteGroup4.style.display = 'none';
-                break;
-              case "테스트B-1-2":
-                palleteGroup1.style.display = 'none';
-                palleteGroup2.style.display = 'none';
-                palleteGroup3.style.display = 'none';
-                palleteGroup4.style.display = 'block';
-                break;
-              default:
-                console.log("No action for this selection");
-            }
-            utils.loadDiagram('./xml/bpmn-js_c-L3-element.xml');
-          });
-
-          level11.addEventListener("change", () => {
-            const selected = level11.value;
-            if (!selected || !data[selected]) {
-              resetAndDisable(level12, level13);
-              return;
-            }
-
-            populateSelect(level12, Object.keys(data[selected]));
-            resetAndDisable(level13);
-          });
-
-          level12.addEventListener("change", () => {
-            const l1 = level11.value;
-            const l2 = level12.value;
-            if (!l2 || !data[l1][l2]) {
-              resetAndDisable(level13);
-              return;
-            }
-            populateSelect(level13, data[l1][l2]);
-          });
-
-          level13.addEventListener("change", (e) => {
-            const selected = e.target.value;
-            console.log("Level 3 selected:", selected);
-            level4El.classList.remove('hidden');
-          });
-
-          level111.addEventListener("change", () => {
-            const selected = level111.value;
-            if (!selected || !data[selected]) {
-              resetAndDisable(level122, level133);
-              return;
-            }
-
-            populateSelect(level122, Object.keys(data[selected]));
-            resetAndDisable(level133);
-          });
-
-          level122.addEventListener("change", () => {
-            const l1 = level111.value;
-            const l2 = level122.value;
-            if (!l2 || !data[l1][l2]) {
-              resetAndDisable(level133);
-              return;
-            }
-            populateSelect(level133, data[l1][l2]);
-          });
-
-          level133.addEventListener("change", (e) => {
-            const selected = e.target.value;
-            console.log("Level 3 selected:", selected);
-            level44El.classList.remove('hidden');
-          });
-
-          createBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            // console.log(e)
-            // const type = 'bpmn:Task';
-            // const id = 'new_' + new Date().getTime();
-            // const name = document.getElementById('l4Name').value;
-            // const label = document.getElementById('l4Name').value;
-
-            // const canvas = bpmnModeler.get('canvas');
-            // const modeling = bpmnModeler.get('modeling');
-            // const moddle = bpmnModeler.get('moddle');
-            // const elementFactory = bpmnModeler.get('elementFactory');
-            // const selection = bpmnModeler.get('selection');
-
-            // const rect = canvasContainer.getBoundingClientRect();
-            // const position = {
-            //   x: e.clientX - rect.left,
-            //   y: e.clientY - rect.top
-            // };
-
-            // // 4. businessObject 구성
-            // const businessObject = moddle.create(type, {
-            //   id,
-            //   name,
-            // });
-
-            // const shape = elementFactory.createShape({
-            //   type,
-            //   businessObject
-            // });
-
-            // modeling.createShape(shape, position, canvas.getRootElement());
-            // selection.select(shape); // 겍체 선택
-
-            document.getElementById('frontend').classList.remove('hidden');
-            closeBtn2El.click(); // 팝업 닫기
-          });
-
+          ],
+        };
+        const camundaModdle = await fetch('./json/camundaModdle.json').then(response =>
+          response.json(),
+        );
+        const bpmnModeler = new BpmnModeler({
+          container: '#canvas',
+          propertiesPanel: {
+            parent: '#properties',
+          },
+          moddleExtensions: {
+            camunda: camundaModdle,
+          },
+          additionalModules: [
+            window.BpmnJSPropertiesPanel.BpmnPropertiesPanelModule,
+            window.BpmnJSPropertiesPanel.BpmnPropertiesProviderModule,
+            window.BpmnJSPropertiesPanel.CamundaPlatformPropertiesProviderModule,
+            window.BpmnJSPropertiesPanel.CamundaPlatformTooltipProvider,
+            CustomModule,
+          ],
         });
-      })
-      .catch(err => {
-        console.error('Error importing BPMN diagram:', err);
-      });
 
+        const eventBus = bpmnModeler.get('eventBus');
 
-  })();
-  </script>
-      <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+        fetch('./xml/blank.xml')
+          .then(response => response.text())
+          .then(xml => {
+            return bpmnModeler.importXML(xml).then(() => {
+              const canvas = bpmnModeler.get('canvas');
+              const modeling = bpmnModeler.get('modeling');
+              const moddle = bpmnModeler.get('moddle');
+              const elementFactory = bpmnModeler.get('elementFactory');
+              const selection = bpmnModeler.get('selection');
+              const level1 = document.getElementById('level1');
+              const level2 = document.getElementById('level2');
+              const level3 = document.getElementById('level3');
+              const level4 = document.getElementById('level4');
+              const level11 = document.getElementById('level11');
+              const level12 = document.getElementById('level12');
+              const level13 = document.getElementById('level13');
+              const level111 = document.getElementById('level111');
+              const level122 = document.getElementById('level122');
+              const level133 = document.getElementById('level133');
+              const createBtn = document.getElementById('createBtn');
+              const level14 = document.getElementById('level14');
+              const popupEl = document.getElementById('popup');
+              const popup2El = document.getElementById('popup2');
+              const level4El = document.getElementById('level4Container');
+              const level44El = document.getElementById('level44Container');
+              const closeBtnEl = document.getElementById('closeBtn');
+              const closeBtn2El = document.getElementById('closeBtn2');
+
+              document.querySelectorAll('.tool-item').forEach(item => {
+                item.addEventListener('dragstart', e => {
+                  const type = e.target.dataset.type;
+                  const role = e.target.dataset.role;
+                  const id = e.target.dataset.id;
+                  const name = e.target.dataset.name;
+                  const label = e.target.dataset.label;
+
+                  e.dataTransfer.setData('type', type);
+                  e.dataTransfer.setData('role', role);
+                  e.dataTransfer.setData('id', id);
+                  e.dataTransfer.setData('name', name);
+                  e.dataTransfer.setData('label', label);
+                });
+              });
+
+              const canvasContainer = document.getElementById('canvas');
+
+              canvasContainer.addEventListener('dragover', e => {
+                e.preventDefault();
+              });
+
+              canvasContainer.addEventListener('drop', async e => {
+                e.preventDefault();
+
+                const type = e.dataTransfer.getData('type');
+                const role = e.dataTransfer.getData('id') ? e.dataTransfer.getData('role') : '';
+                const id = e.dataTransfer.getData('id')
+                  ? e.dataTransfer.getData('id') + new Date().getTime()
+                  : '';
+                const name = e.dataTransfer.getData('name') ? e.dataTransfer.getData('name') : '';
+                const label = e.dataTransfer.getData('label')
+                  ? e.dataTransfer.getData('label')
+                  : '';
+
+                if (!type) return;
+
+                const rect = canvasContainer.getBoundingClientRect();
+                const position = {
+                  x: e.clientX - rect.left,
+                  y: e.clientY - rect.top,
+                };
+
+                // 4. businessObject 구성
+                const businessObject = moddle.create(type, {
+                  id,
+                  name,
+                });
+
+                const shape = elementFactory.createShape({
+                  type,
+                  businessObject,
+                });
+                shape.businessObject.role = role;
+
+                modeling.createShape(shape, position, canvas.getRootElement());
+              });
+
+              document.querySelectorAll('.popup-l4').forEach(item => {
+                item.addEventListener('click', e => {
+                  e.preventDefault();
+                  // console.log(e)
+                  // const type = e.target.dataset.type;
+                  // const role = e.target.dataset.role;
+                  // const id = e.target.dataset.id + new Date().getTime();
+                  // const name = e.target.dataset.name;
+                  // const label = e.target.dataset.label;
+                  // if (!type) return;
+
+                  // const canvas = bpmnModeler.get('canvas');
+                  // const modeling = bpmnModeler.get('modeling');
+                  // const moddle = bpmnModeler.get('moddle');
+                  // const elementFactory = bpmnModeler.get('elementFactory');
+                  // const selection = bpmnModeler.get('selection');
+
+                  // const rect = canvasContainer.getBoundingClientRect();
+                  // const position = {
+                  //   x: e.clientX - rect.left,
+                  //   y: e.clientY - rect.top
+                  // };
+
+                  // // 4. businessObject 구성
+                  // const businessObject = moddle.create(type, {
+                  //   id,
+                  //   name,
+                  // });
+
+                  // const shape = elementFactory.createShape({
+                  //   type,
+                  //   businessObject
+                  // });
+                  // shape.businessObject.role = role;
+
+                  // modeling.createShape(shape, position, canvas.getRootElement());
+                  // selection.select(shape); // 겍체 선택
+                  document.getElementById('database').classList.remove('hidden');
+                  closeBtnEl.click(); // 팝업 닫기
+                });
+              });
+
+              const utils = bpmnUtils(bpmnModeler);
+              document.getElementById('save-button').addEventListener('click', e => {
+                utils.downloadXML('diagram.bpmn');
+              });
+              // 다른 L4 찾기 버튼 클릭 이벤트
+              document.getElementById('find-another-l4').addEventListener('click', e => {
+                e.preventDefault();
+                e.stopPropagation();
+                resetAndDisable(level2, level3);
+                popupEl.classList.remove('hidden');
+                popupEl.classList.add('flex');
+              });
+              document.getElementById('create-l4').addEventListener('click', e => {
+                e.preventDefault();
+                e.stopPropagation();
+                resetAndDisable(level2, level3);
+                popup2El.classList.remove('hidden');
+                popup2El.classList.add('flex');
+              });
+              // 닫기버튼 클릭 시 팝업창 close
+              closeBtn2El.addEventListener('click', event => {
+                level44El.classList.add('hidden');
+                popup2El.classList.add('hidden');
+                popup2El.classList.remove('flex');
+              });
+
+              const data = {
+                테스트A: {
+                  '테스트A-1': ['테스트A-1-1'],
+                  '테스트A-2': ['테스트A-2-1'],
+                },
+                테스트B: {
+                  '테스트B-1': ['테스트B-1-1'],
+                  '테스트B-2': ['테스트B-2-1'],
+                },
+              };
+
+              let selectedElement = null;
+
+              // click outside 이벤트 - popup 외 element click 시 팝업 닫음
+              window.addEventListener('click', event => {
+                const { target } = event;
+
+                if (target === popupEl || popupEl.contains(target)) {
+                  return;
+                }
+
+                level4El.classList.add('hidden');
+                popupEl.classList.add('hidden');
+                popupEl.classList.remove('flex');
+              });
+              // 닫기버튼 클릭 시 팝업창 close
+              closeBtnEl.addEventListener('click', event => {
+                level4El.classList.add('hidden');
+                popupEl.classList.add('hidden');
+                popupEl.classList.remove('flex');
+              });
+
+              function populateSelect(select, options, placeholder = '-- 선택 --') {
+                select.innerHTML = `<option value="">${placeholder}</option>`;
+                options.forEach(opt => {
+                  const option = document.createElement('option');
+                  option.value = opt;
+                  option.textContent = opt;
+                  select.appendChild(option);
+                });
+                select.disabled = options.length === 0;
+              }
+
+              function resetAndDisable(...selects) {
+                selects.forEach(s => {
+                  s.innerHTML = `<option value="">-- 선택 --</option>`;
+                  s.disabled = true;
+                });
+              }
+
+              const palleteGroup1 = document.getElementById('palleteGroup1');
+              const palleteGroup2 = document.getElementById('palleteGroup2');
+              const palleteGroup3 = document.getElementById('palleteGroup3');
+              const palleteGroup4 = document.getElementById('palleteGroup4');
+              // 초기 Level1 로드
+              populateSelect(level1, Object.keys(data));
+              populateSelect(level11, Object.keys(data));
+              populateSelect(level111, Object.keys(data));
+
+              level1.addEventListener('change', () => {
+                const selected = level1.value;
+                if (!selected || !data[selected]) {
+                  resetAndDisable(level2, level3);
+                  return;
+                }
+
+                populateSelect(level2, Object.keys(data[selected]));
+                resetAndDisable(level3);
+              });
+
+              level2.addEventListener('change', () => {
+                const l1 = level1.value;
+                const l2 = level2.value;
+                if (!l2 || !data[l1][l2]) {
+                  resetAndDisable(level3);
+                  return;
+                }
+                populateSelect(level3, data[l1][l2]);
+              });
+
+              level3.addEventListener('change', e => {
+                const selected = e.target.value;
+                console.log('Level 3 selected:', selected);
+                level4.innerText = selected + ' (L4)';
+                switch (selected) {
+                  case '테스트A-1-1':
+                    palleteGroup1.style.display = 'block';
+                    palleteGroup2.style.display = 'none';
+                    palleteGroup3.style.display = 'none';
+                    palleteGroup4.style.display = 'none';
+                    break;
+                  case '테스트A-1-2':
+                    palleteGroup1.style.display = 'none';
+                    palleteGroup2.style.display = 'block';
+                    palleteGroup3.style.display = 'none';
+                    palleteGroup4.style.display = 'none';
+                    break;
+                  case '테스트B-1-1':
+                    palleteGroup1.style.display = 'none';
+                    palleteGroup2.style.display = 'none';
+                    palleteGroup3.style.display = 'block';
+                    palleteGroup4.style.display = 'none';
+                    break;
+                  case '테스트B-1-2':
+                    palleteGroup1.style.display = 'none';
+                    palleteGroup2.style.display = 'none';
+                    palleteGroup3.style.display = 'none';
+                    palleteGroup4.style.display = 'block';
+                    break;
+                  default:
+                    console.log('No action for this selection');
+                }
+                utils.loadDiagram('./xml/bpmn-js_c-L3-element.xml');
+              });
+
+              level11.addEventListener('change', () => {
+                const selected = level11.value;
+                if (!selected || !data[selected]) {
+                  resetAndDisable(level12, level13);
+                  return;
+                }
+
+                populateSelect(level12, Object.keys(data[selected]));
+                resetAndDisable(level13);
+              });
+
+              level12.addEventListener('change', () => {
+                const l1 = level11.value;
+                const l2 = level12.value;
+                if (!l2 || !data[l1][l2]) {
+                  resetAndDisable(level13);
+                  return;
+                }
+                populateSelect(level13, data[l1][l2]);
+              });
+
+              level13.addEventListener('change', e => {
+                const selected = e.target.value;
+                console.log('Level 3 selected:', selected);
+                level4El.classList.remove('hidden');
+              });
+
+              level111.addEventListener('change', () => {
+                const selected = level111.value;
+                if (!selected || !data[selected]) {
+                  resetAndDisable(level122, level133);
+                  return;
+                }
+
+                populateSelect(level122, Object.keys(data[selected]));
+                resetAndDisable(level133);
+              });
+
+              level122.addEventListener('change', () => {
+                const l1 = level111.value;
+                const l2 = level122.value;
+                if (!l2 || !data[l1][l2]) {
+                  resetAndDisable(level133);
+                  return;
+                }
+                populateSelect(level133, data[l1][l2]);
+              });
+
+              level133.addEventListener('change', e => {
+                const selected = e.target.value;
+                console.log('Level 3 selected:', selected);
+                level44El.classList.remove('hidden');
+              });
+
+              createBtn.addEventListener('click', e => {
+                e.preventDefault();
+                // console.log(e)
+                // const type = 'bpmn:Task';
+                // const id = 'new_' + new Date().getTime();
+                // const name = document.getElementById('l4Name').value;
+                // const label = document.getElementById('l4Name').value;
+
+                // const canvas = bpmnModeler.get('canvas');
+                // const modeling = bpmnModeler.get('modeling');
+                // const moddle = bpmnModeler.get('moddle');
+                // const elementFactory = bpmnModeler.get('elementFactory');
+                // const selection = bpmnModeler.get('selection');
+
+                // const rect = canvasContainer.getBoundingClientRect();
+                // const position = {
+                //   x: e.clientX - rect.left,
+                //   y: e.clientY - rect.top
+                // };
+
+                // // 4. businessObject 구성
+                // const businessObject = moddle.create(type, {
+                //   id,
+                //   name,
+                // });
+
+                // const shape = elementFactory.createShape({
+                //   type,
+                //   businessObject
+                // });
+
+                // modeling.createShape(shape, position, canvas.getRootElement());
+                // selection.select(shape); // 겍체 선택
+
+                document.getElementById('frontend').classList.remove('hidden');
+                closeBtn2El.click(); // 팝업 닫기
+              });
+            });
+          })
+          .catch(err => {
+            console.error('Error importing BPMN diagram:', err);
+          });
+      })();
+    </script>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-<!-- Latest compiled and minified JavaScript -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <!-- Latest compiled and minified JavaScript -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"
+      integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+      crossorigin="anonymous"
+    ></script>
   </body>
 </html>

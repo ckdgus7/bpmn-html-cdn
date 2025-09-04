@@ -55,7 +55,7 @@
 
     <!-- Properties Panel (UMD) -->
     <script src="./vendor/bpmn-js/assets/bpmn-js-properties-panel-v5.30.0.js"></script>
-  <script src="./utils/index.js"></script>
+    <script src="./utils/index.js"></script>
 
     <script type="module">
       (async function () {
@@ -67,26 +67,26 @@
         const { BpmnPropertiesPanelModule, CamundaPlatformPropertiesProviderModule } =
           window.BpmnJSPropertiesPanel;
         const qaExtension = {
-          "name": "QA",
-          "uri": "http://some-company/schema/bpmn/qa",
-          "prefix": "qa",
-          "xml": {
-            "tagAlias": "lowerCase"
+          name: 'QA',
+          uri: 'http://some-company/schema/bpmn/qa',
+          prefix: 'qa',
+          xml: {
+            tagAlias: 'lowerCase',
           },
-          "types": [
+          types: [
             {
-              "name": "AnalyzedNode",
-              "extends": ["bpmn:Task"],
-              "properties": [
+              name: 'AnalyzedNode',
+              extends: ['bpmn:Task'],
+              properties: [
                 {
-                  "name": "suitable",
-                  "isAttr": true,
-                  "type": "String"
-                }
-              ]
-            }
-          ]
-        }
+                  name: 'suitable',
+                  isAttr: true,
+                  type: 'String',
+                },
+              ],
+            },
+          ],
+        };
 
         function registerCustomRenderer(eventBus, bpmnRenderer) {
           const BaseRenderer = extractBaseRenderer(bpmnRenderer);
@@ -102,7 +102,6 @@
               return !element.labelTarget;
             }
 
-
             drawShape(parentNode, element) {
               const shape = this.bpmnRenderer.drawShape(parentNode, element);
               const suitabilityScore = this.getSuitabilityScore(element);
@@ -111,12 +110,12 @@
                 const color = this.getColor(suitabilityScore);
                 const rect = drawRect(parentNode, element.width, 20, 2, color);
                 svgAttr(rect, {
-                  transform: 'translate(-20, -10)'
+                  transform: 'translate(-20, -10)',
                 });
                 const text = svgCreate('text');
                 svgAttr(text, {
                   fill: '#fff',
-                  transform: 'translate(-15, 5)'
+                  transform: 'translate(-15, 5)',
                 });
                 svgClasses(text).add('djs-label');
                 svgAppend(text, document.createTextNode(suitabilityScore));
@@ -163,28 +162,28 @@
             return groups => {
               return groups.filter(g => {
                 return ![
-                    'CamundaPlatform__JobExecution',
-                    'CamundaPlatform__ExternalTask',
-                    'CamundaPlatform__CandidateStarter',
-                    'CamundaPlatform__Tasklist',
-                    'CamundaPlatform__HistoryCleanup',
-                    'CamundaPlatform__StartInitiator',
-                    'CamundaPlatform__Form',
-                    'CamundaPlatform__Input',
-                    'CamundaPlatform__Output',
-                    'CamundaPlatform__ExecutionListener',
-                    'CamundaPlatform__AsynchronousContinuations',
-                    'CamundaPlatform__Implementation',
-                    'CamundaPlatform__TaskListener',
-                    'CamundaPlatform__UserAssignment',
-                    'CamundaPlatform__FieldInjection',
-                    'CamundaPlatform__Script',
-                    'CamundaPlatform__CallActivity',
-                    'CamundaPlatform__InMappingPropagation',
-                    'CamundaPlatform__InMapping',
-                    'CamundaPlatform__OutMappingPropagation',
-                    'CamundaPlatform__OutMapping',
-                    'CamundaPlatform__Condition',
+                  'CamundaPlatform__JobExecution',
+                  'CamundaPlatform__ExternalTask',
+                  'CamundaPlatform__CandidateStarter',
+                  'CamundaPlatform__Tasklist',
+                  'CamundaPlatform__HistoryCleanup',
+                  'CamundaPlatform__StartInitiator',
+                  'CamundaPlatform__Form',
+                  'CamundaPlatform__Input',
+                  'CamundaPlatform__Output',
+                  'CamundaPlatform__ExecutionListener',
+                  'CamundaPlatform__AsynchronousContinuations',
+                  'CamundaPlatform__Implementation',
+                  'CamundaPlatform__TaskListener',
+                  'CamundaPlatform__UserAssignment',
+                  'CamundaPlatform__FieldInjection',
+                  'CamundaPlatform__Script',
+                  'CamundaPlatform__CallActivity',
+                  'CamundaPlatform__InMappingPropagation',
+                  'CamundaPlatform__InMapping',
+                  'CamundaPlatform__OutMappingPropagation',
+                  'CamundaPlatform__OutMapping',
+                  'CamundaPlatform__Condition',
                 ].includes(g.id);
               });
             };
@@ -192,13 +191,11 @@
         }
 
         const customModule = {
-            __init__: ['customPropertiesProvider', 'customRenderer'],
-            customPropertiesProvider: ['type', CustomPropertiesProvider],
-            customRenderer: ['type', registerCustomRenderer]
+          __init__: ['customPropertiesProvider', 'customRenderer'],
+          customPropertiesProvider: ['type', CustomPropertiesProvider],
+          customRenderer: ['type', registerCustomRenderer],
         };
-        CustomPropertiesProvider.$inject = [
-          'propertiesPanel',
-        ];
+        CustomPropertiesProvider.$inject = ['propertiesPanel'];
         // ------ Modeler ------
         const bpmnModeler = new BpmnModeler({
           container: '#canvas',
@@ -210,7 +207,7 @@
           ],
           moddleExtensions: {
             camunda: camundaModdle,
-            qa: qaExtension
+            qa: qaExtension,
           },
         });
 
@@ -248,11 +245,11 @@
               const modeling = bpmnModeler.get('modeling');
               const eventBus = bpmnModeler.get('eventBus');
               eventBus.on('commandStack.shape.create.postExecute', event => {
-                  // extensionProperties 생성
-                  createExtensionProperties(event.context.shape, moddle);
+                // extensionProperties 생성
+                createExtensionProperties(event.context.shape, moddle);
               });
               // 감시할 이벤트: Extension properties 변경 감지
-              eventBus.on('commandStack.element.updateModdleProperties.postExecute', (event) => {
+              eventBus.on('commandStack.element.updateModdleProperties.postExecute', event => {
                 const { context } = event;
                 const { element, properties } = context;
 
@@ -261,53 +258,54 @@
                 const extensionElements = bo.extensionElements;
 
                 if (extensionElements && extensionElements.values) {
-                  const props = extensionElements.values.find(v => v.$type === 'camunda:Properties');
+                  const props = extensionElements.values.find(
+                    v => v.$type === 'camunda:Properties',
+                  );
 
                   if (props) {
                     const targetProp = props.values.find(p => p.name === '화면명');
                     if (targetProp) {
-
                       // model 업데이트 (extensionElements element 노드 업데이트 - updateProperties실행해야 diagram rerender됨)
                       modeling.updateProperties(element, {
-                        suitable: targetProp.value
+                        suitable: targetProp.value,
                       });
                     }
                   }
                 }
               });
               elementRegistry.forEach(el => {
-                  // extensionProperties 생성
-                  createExtensionProperties(el, moddle);
+                // extensionProperties 생성
+                createExtensionProperties(el, moddle);
               });
             } catch (err) {
               console.error('Failed to load BPMN diagram:', err);
             }
           });
-          function createExtensionProperties (el, moddle) {
-            if (el.type !== 'bpmn:Task')  return;
+        function createExtensionProperties(el, moddle) {
+          if (el.type !== 'bpmn:Task') return;
 
-            const extensionProperties = moddle.create('camunda:Properties', {
-                values: [
-                    moddle.create('camunda:Property', {
-                        name: '화면명',
-                        value: '',
-                    }),
-                    moddle.create('camunda:Property', {
-                        name: '기타사항1',
-                        value: '',
-                    }),
-                    moddle.create('camunda:Property', {
-                        name: '기타사항2',
-                        value: '',
-                    }),
-                ],
-            });
+          const extensionProperties = moddle.create('camunda:Properties', {
+            values: [
+              moddle.create('camunda:Property', {
+                name: '화면명',
+                value: '',
+              }),
+              moddle.create('camunda:Property', {
+                name: '기타사항1',
+                value: '',
+              }),
+              moddle.create('camunda:Property', {
+                name: '기타사항2',
+                value: '',
+              }),
+            ],
+          });
 
-            // businessObject에 반영
-            el.businessObject.extensionElements = moddle.create('bpmn:ExtensionElements', {
-                values: [extensionProperties],
-            });
-        };
+          // businessObject에 반영
+          el.businessObject.extensionElements = moddle.create('bpmn:ExtensionElements', {
+            values: [extensionProperties],
+          });
+        }
       })();
     </script>
   </body>
